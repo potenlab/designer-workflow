@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>/design — Proposal</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: #1c1917; line-height: 1.5; font-size: 11pt; margin: 0;
+  }
+  .accent { color: #ea580c; }
+  header {
+    border-bottom: 3px solid #ea580c; padding-bottom: 14px; margin-bottom: 22px;
+  }
+  h1 { font-size: 26pt; margin: 0 0 4px; letter-spacing: -0.5px; }
+  h1 .mono { font-family: "SF Mono", ui-monospace, Menlo, monospace; }
+  .sub { font-size: 12pt; color: #57534e; margin: 0; }
+  .meta { font-size: 9.5pt; color: #78716c; margin-top: 10px; }
+  .meta b { color: #1c1917; }
+  h2 {
+    font-size: 13pt; margin: 26px 0 8px; padding-left: 10px;
+    border-left: 4px solid #ea580c;
+  }
+  p { margin: 0 0 10px; }
+  .lead {
+    background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
+    padding: 14px 16px; font-size: 11.5pt; color: #431407; margin-bottom: 4px;
+  }
+  .lead b { color: #c2410c; }
+  ul { margin: 4px 0 10px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 10pt; }
+  th { background: #1c1917; color: #fff; text-align: left; padding: 7px 10px; font-weight: 600; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e7e5e4; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafaf9; }
+  .day td:first-child { font-weight: 700; color: #c2410c; white-space: nowrap; }
+  .ok { color: #16a34a; font-weight: 700; }
+  .no { color: #dc2626; font-weight: 700; }
+  .flow {
+    background: #1c1917; color: #fafaf9; border-radius: 8px; padding: 16px 18px;
+    font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 9.5pt;
+    line-height: 1.7; white-space: pre-wrap; margin: 6px 0 12px;
+  }
+  .flow .u { color: #fdba74; }
+  .flow .s { color: #7dd3fc; }
+  .pill {
+    display: inline-block; background: #fff7ed; border: 1px solid #fed7aa;
+    color: #c2410c; border-radius: 999px; padding: 1px 9px; font-size: 9pt;
+    font-weight: 600; margin-right: 4px;
+  }
+  .guard { display: flex; gap: 12px; margin: 8px 0 12px; }
+  .guard > div { flex: 1; border-radius: 8px; padding: 12px 14px; font-size: 9.5pt; }
+  .allow { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .forbid { background: #fef2f2; border: 1px solid #fecaca; }
+  .guard h4 { margin: 0 0 6px; font-size: 10pt; }
+  .guard ul { padding-left: 16px; margin: 0; }
+  footer {
+    margin-top: 28px; padding-top: 12px; border-top: 1px solid #e7e5e4;
+    font-size: 9pt; color: #a8a29e;
+  }
+  .avoid-break { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="mono accent">design</span> — let designers &amp; PMs build apps</h1>
+  <p class="sub">An auto-triggering Claude Code skill that turns plain-language intent into a working application — no command to type.</p>
+  <p class="meta">
+    <b>Status:</b> Proposal &nbsp;·&nbsp; <b>Owner:</b> dev@potenlab.dev &nbsp;·&nbsp;
+    <b>Date:</b> 2026-06-12 &nbsp;·&nbsp; <b>Review:</b> DionNam, Raka &nbsp;·&nbsp;
+    <b>Timeline:</b> 3 days
+  </p>
+</header>
+
+<div class="lead">
+  <b>The goal.</b> A designer or PM describes an <b>application</b> they want — in design and
+  business language — and Claude <b>creates the whole thing</b>. It <b>thinks as an engineer</b>
+  underneath (data, backend, UI, security) but <b>responds as a designer/PM</b>: plain words and a
+  running app, never code. It <b>switches itself on</b> from the user's words — <b>no command to type</b>.
+</div>
+
+<h2>1 · Why</h2>
+<p>
+  Today, building even a small internal app needs an engineer's mental model — file trees, diffs,
+  databases, RLS. Designers and PMs have the <em>ideas</em> but not that model. The <code>design</code>
+  skill is a <b>translation skin</b> over tools we already have: the user just describes what they
+  want, the skill <b>recognizes the intent and turns itself on</b>, runs the engineer's loop silently,
+  and shows only the result.
+</p>
+
+<h2>2 · What it does</h2>
+<table>
+  <tr><th style="width:34%">The user does</th><th>The skill does (silently)</th></tr>
+  <tr><td>Describes an app in plain language</td><td><b>Recognizes the intent &amp; switches on</b> → maps it to app structure + scope</td></tr>
+  <tr><td>Confirms a plain-language plan</td><td>Builds full-stack in an isolated sandbox: data + backend + UI</td></tr>
+  <tr><td>Looks at before/after screenshots</td><td>Runs the app, captures mobile + desktop walkthrough</td></tr>
+  <tr><td>Says "ship it"</td><td>Opens a PR with screenshots + a human summary for the dev</td></tr>
+</table>
+
+<h2>3 · Install once, triggers itself</h2>
+<p style="font-size:10.5pt">
+  There is <b>no command to learn</b>. Install the skill once and it activates automatically whenever
+  a user describes an app or design — Claude reads the skill's intent triggers and turns it on.
+</p>
+<table>
+  <tr><th style="width:30%">Install scope</th><th>Where</th><th>Result</th></tr>
+  <tr><td><b>Per-user (global)</b></td><td><code>~/.claude/skills/</code></td><td>Active on <b>every</b> project that user opens.</td></tr>
+  <tr><td><b>Per-project (team)</b></td><td>repo's <code>.claude/skills/</code></td><td>Ships with the project — the whole team gets it.</td></tr>
+</table>
+
+<h2>4 · Building blocks — all ready</h2>
+<table>
+  <tr><th>Need</th><th>Reuse</th><th>Status</th></tr>
+  <tr><td>Intent → structure + blast radius</td><td>kg-workflow (kg-context-dispatch)</td><td class="ok">✓ ready</td></tr>
+  <tr><td>Plain-language design &amp; UI build</td><td>frontend-design, impeccable</td><td class="ok">✓ ready</td></tr>
+  <tr><td>Secure backend (data + auth)</td><td>supabase-integration skill + Supabase MCP</td><td class="ok">✓ ready</td></tr>
+  <tr><td>Run app + visual verify</td><td>chrome extension / chrome-devtools MCP, verify</td><td class="ok">✓ ready</td></tr>
+  <tr><td>Asset generation</td><td>higgsfield MCP</td><td class="ok">✓ ready</td></tr>
+  <tr><td>PR handoff</td><td>commit-push-pr, qa-check</td><td class="ok">✓ ready</td></tr>
+</table>
+<p style="font-size:10pt;color:#57534e">
+  Every dependency is installed. This is <b>assembly + guardrails</b>, not new infrastructure — which
+  is why it fits in 3 days.
+</p>
+
+<h2>5 · Three-day timeline</h2>
+<table>
+  <tr><th style="width:14%">Day</th><th>Ships</th></tr>
+  <tr class="day"><td>Day 1<br>Triggers &amp; guardrails</td>
+    <td>~6 golden designer/PM app-idea prompts → acceptance tests. <code>design</code> skill scaffold
+    with a <b>tuned auto-trigger</b> (fires on app/design intent, stays quiet otherwise) → plain-language
+    plan restatement → isolated sandbox per session + hard guardrails.</td></tr>
+  <tr class="day"><td>Day 2<br>Build &amp; PR</td>
+    <td>Full-stack build in the sandbox: <b>Supabase backend</b> (schema + RLS + auth + typed client,
+    verified) + UI. Run the app, capture mobile + desktop walkthrough. Auto-PR with summary +
+    screenshots.</td></tr>
+  <tr class="day"><td>Day 3<br>Dogfood &amp; install</td>
+    <td>Run the golden prompts with Minjae + a PM set <b>without telling them a command</b> — confirm it
+    auto-fires. Capture friction, tune triggers, document the one-step install (global vs per-project),
+    lock v1.</td></tr>
+</table>
+<p style="font-size:10pt;color:#57534e"><b>Usable MVP by end of Day 2.</b></p>
+
+<h2>6 · The guardrail is the product</h2>
+<p style="font-size:10.5pt">
+  The skill builds full apps (data + backend included), so safety isn't "never touch the backend" —
+  it's <b>isolation</b>. Each app is built in its own sandbox and can never reach our live systems.
+  Because the skill fires <b>without an explicit command</b>, this boundary has to hold on its own.
+</p>
+<div class="guard avoid-break">
+  <div class="allow">
+    <h4 class="ok">✓ Allowed</h4>
+    <ul>
+      <li>Everything inside the new app's own workspace/branch</li>
+      <li>Its data model, backend, UI, assets, config</li>
+    </ul>
+  </div>
+  <div class="forbid">
+    <h4 class="no">✕ Hard refuse</h4>
+    <ul>
+      <li>Other apps / repos, production databases</li>
+      <li>Shared secrets, existing auth &amp; billing</li>
+    </ul>
+  </div>
+</div>
+<p style="font-size:10pt;color:#57534e">
+  If an idea genuinely needs a forbidden change, the skill <b>stops</b> and writes a dev-handoff note
+  for the engineer — in plain language — instead of doing it.
+</p>
+
+<h2>7 · What the user actually experiences</h2>
+<div class="flow avoid-break"><span class="u">PM:</span>  "an intake tool — clients submit a brief, we track it New &#8594; Doing &#8594; Done"
+   &#8595;  <span style="color:#a8a29e">(no command — the skill recognizes the intent and switches on)</span>
+<span class="s">design</span>   &#9312; restates the plan in plain language
+         "A brief tracker. It saves briefs and their status. It lives in its own
+          sandbox — nothing touches our live data. Go ahead?"
+   &#8595;  (yes)
+         &#9313; builds the full app on an isolated branch (sandbox only)
+         &#9314; runs it, shows BEFORE / AFTER — mobile + desktop
+   &#8595;  (looks good)
+         &#9315; opens a PR with screenshots + a human summary for the dev</div>
+
+<h2>8 · Done when (v1 acceptance)</h2>
+<ul>
+  <li><b>Auto-triggers on app/design intent</b> without a command — and stays quiet on unrelated asks.</li>
+  <li>Builds a <b>runnable</b> app from a plain-language description.</li>
+  <li>Stays in its sandbox — refuses to touch live systems, writes a handoff note instead.</li>
+  <li>Always restates the plan in plain language before building.</li>
+  <li>Always shows the running app (mobile + desktop) before the PR.</li>
+  <li>Always lands on an isolated branch and opens a PR — never commits to <code>main</code>.</li>
+  <li>Never shows the user raw code unless asked.</li>
+</ul>
+
+<h2>9 · We need from the team</h2>
+<ul>
+  <li>5–6 real app ideas a designer <b>and</b> a PM would actually type (seeds the golden set + tunes the trigger).</li>
+  <li>Default install scope — global per-user for everyone, or committed per-project?</li>
+  <li>Where new sandbox apps live — a subfolder here, or a fresh repo per app.</li>
+  <li>Confirm the isolation boundary (what counts as "production / off-limits").</li>
+</ul>
+
+<footer>
+  design skill · auto-triggers, no command · think as engineer, respond as designer/PM · 3-day build · all blocks ready · 2026-06-12
+</footer>
+
+</body>
+</html>
