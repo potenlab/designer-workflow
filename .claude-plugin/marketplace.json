@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace-manifest.json",
+  "name": "designer-workflow",
+  "owner": {
+    "name": "potenlab",
+    "email": "dev@potenlab.dev"
+  },
+  "description": "Designer Workflow marketplace — describe an app in plain language, get a running app + PR.",
+  "plugins": [
+    {
+      "name": "designer-workflow",
+      "source": "./",
+      "description": "Describe an app, get a running app + PR. Auto-triggering design skill + secure Supabase backend, with /designer-workflow:dw-init to set it up in any project.",
+      "category": "workflow",
+      "keywords": ["design", "designer", "pm", "app-builder", "supabase"]
+    }
+  ]
+}

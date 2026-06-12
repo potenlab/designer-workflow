@@ -1,52 +1,99 @@
 # designer-workflow
 
-A **`design` skill** that lets a **designer or PM create a whole running application** in plain
-language — Claude does the full-stack engineer's thinking underneath (idea → data model → backend →
-UI → running app → PR) but only ever responds in design/product language and a working app, never
-code. It **auto-triggers on intent**: the user never types a command and never reads a diff.
+A Claude Code **plugin**. A **designer or PM describes an application in plain language** and gets a
+**running app + a PR** — Claude does the full-stack engineer's thinking underneath (idea → data model
+→ backend → UI → running app → PR) but only ever responds in design/product language and a working
+app, **never code**. It **auto-triggers on intent**: no command to memorize, no diffs to read.
 
-See **[docs/TIMELINE.md](docs/TIMELINE.md)** for the full spec, locked decisions, timeline, and
-acceptance criteria. (`docs/proposal.html` / `docs/proposal.pdf` are the shareable versions.)
+See **[docs/TIMELINE.md](docs/TIMELINE.md)** for the full spec, locked decisions, and acceptance
+criteria. (`docs/proposal.html` / `docs/proposal.pdf` are the shareable versions.)
 
-## What ships in this repo
+## Install (2 steps)
 
-```
-.claude/skills/
-├── design/                     # the orchestrator: describe an app → get a running app + PR
-│   ├── SKILL.md
-│   └── references/
-│       ├── golden-prompts.md   # designer + PM app-idea prompts (acceptance set)
-│       └── dev-handoff-template.md
-└── supabase-integration/       # the backend half: schema + RLS + auth + typed client (Supabase MCP)
-    └── SKILL.md
+**1 — Install the plugin** in Claude Code:
+
+```text
+/plugin marketplace add potenlab/designer-workflow
+/plugin install designer-workflow@designer-workflow
 ```
 
-`design` orchestrates; `supabase-integration` is the backend building block it delegates to. The loop:
+(or non-interactively: `claude plugin marketplace add potenlab/designer-workflow` then
+`claude plugin install designer-workflow@designer-workflow`.)
 
-1. **Restate** the app plan in plain language → get a yes.
-2. **Build** the full stack on an isolated **sandbox branch** (never touches other apps, production
-   data, secrets, or auth/billing).
+**2 — Initialize it in your project** — run once per project:
+
+```text
+/designer-workflow:dw-init
+```
+
+`dw-init` asks, in plain language, **where new apps should live** and **what's off-limits** (your real
+data, secrets, auth/billing), checks the tools the workflow needs (Supabase MCP, a browser tool,
+optionally higgsfield), and writes `.designer-workflow/config.md`. After that there is **no command** —
+just describe an app and the workflow takes over.
+
+## How to use it (after install)
+
+Just say what you want:
+
+> "a clean little gallery app where I drop images and tag them"
+> "an intake tool: clients submit a brief, and we track it New → Doing → Done"
+
+The `design` skill recognizes the intent and runs the loop:
+
+1. **Restate** the app plan in plain language → get your okay.
+2. **Build** the full stack on an isolated **sandbox branch** (data + backend + UI). It never touches
+   other apps, production data, secrets, or auth/billing.
 3. **Run** it and show a **mobile + desktop** walkthrough.
 4. **Open a PR** with the walkthrough + a human summary.
 
-## Install
+## What's in the plugin
 
-Two paths, same behavior — both rely on the skill's auto-trigger `description` (no slash command):
+```
+designer-workflow/
+├── .claude-plugin/
+│   ├── plugin.json             # plugin manifest
+│   └── marketplace.json        # self-marketplace (this repo lists itself)
+├── commands/
+│   └── dw-init.md              # /designer-workflow:dw-init — per-project setup
+├── skills/
+│   ├── design/                 # orchestrator: describe an app → running app + PR
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── golden-prompts.md
+│   │       └── dev-handoff-template.md
+│   └── supabase-integration/   # backend half: schema + RLS + auth + typed client (Supabase MCP)
+│       └── SKILL.md
+└── docs/                       # TIMELINE.md + proposal.html/pdf
+```
 
-- **Per-project (this repo ships it):** the skills already live in `.claude/skills/`. Anyone who opens
-  this repo in Claude Code gets them automatically.
-- **Per-user (global, all your projects):** symlink (or copy) the two skill folders into your user
-  skills dir:
+`design` orchestrates and delegates the backend to `supabase-integration`. Both auto-trigger from
+their `description`; `dw-init` is the one explicit command, used only at setup.
 
-  ```bash
-  ln -sfn "$PWD/.claude/skills/design"               ~/.claude/skills/design
-  ln -sfn "$PWD/.claude/skills/supabase-integration" ~/.claude/skills/supabase-integration
-  ```
+## Develop / test locally
 
-Newly installed skills load at the **start of a Claude Code session** — restart/clear to pick them up.
+```bash
+# Load the plugin in a throwaway session without installing it
+claude --plugin-dir /path/to/designer-workflow
+
+# Validate the manifest + skill/command frontmatter
+claude plugin validate /path/to/designer-workflow
+
+# After editing skills/commands mid-session
+/reload-plugins
+```
+
+## Requirements
+
+- **Supabase MCP** — secure backend for new apps (used by `supabase-integration`).
+- **A browser tool** — `chrome-devtools` MCP *or* the `agent-browser` skill — to run apps and capture
+  the mobile + desktop walkthrough.
+- **higgsfield MCP** *(optional)* — brand-locked image/icon assets.
+- **git + a GitHub remote** — so the workflow can open a PR.
+
+`dw-init` checks all of these and tells you, in plain language, what (if anything) is missing.
 
 ## Status
 
-Proposal v1 — pending team sign-off (DionNam, Raka). Open inputs still needed from the team are listed
-in [docs/TIMELINE.md](docs/TIMELINE.md) §9 (real golden prompts, where sandbox apps live, the
-production isolation boundary).
+Proposal v1 — pending team sign-off (DionNam, Raka). Open team inputs are in
+[docs/TIMELINE.md](docs/TIMELINE.md) §9 (real golden prompts, where sandbox apps live, the production
+isolation boundary). `dw-init` is how the last two get answered per project.

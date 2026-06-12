@@ -56,6 +56,10 @@ Never skip ①, ③, or ④. They are acceptance criteria, not nice-to-haves.
 
 Before touching anything, **load context and restate the plan** so the user can correct you cheaply.
 
+- **Read the project config first if it exists** (`.designer-workflow/config.md`, written by
+  `/designer-workflow:dw-init`). It tells you **where sandbox apps live** and the **off-limits /
+  production boundary** for this project. If it's missing, fall back to the defaults in §2 and
+  suggest the user run `/designer-workflow:dw-init` once to set the boundary explicitly.
 - Invoke **kg-context-dispatch** (this repo's KG workflow) to understand the existing tree and the
   blast radius — *for your own situational awareness and to draw the sandbox boundary.* Never surface
   KG/`touch_budget`/"blast radius" language to the user.

@@ -1,0 +1,24 @@
+{
+  "name": "designer-workflow",
+  "displayName": "Designer Workflow",
+  "version": "0.1.0",
+  "description": "Describe an app in plain language, get a running app + PR. A designer or PM speaks product; Claude does the full-stack engineering underneath (data model -> backend -> UI -> running app -> PR) and only ever shows a working app, never code. Auto-triggers on app-creation intent; builds inside an isolated sandbox that never touches production data, secrets, or auth/billing.",
+  "author": {
+    "name": "potenlab",
+    "email": "dev@potenlab.dev",
+    "url": "https://github.com/potenlab"
+  },
+  "homepage": "https://github.com/potenlab/designer-workflow",
+  "repository": "https://github.com/potenlab/designer-workflow",
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "designer",
+    "pm",
+    "app-builder",
+    "full-stack",
+    "supabase",
+    "no-code",
+    "workflow"
+  ]
+}

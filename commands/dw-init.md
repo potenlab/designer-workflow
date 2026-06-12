@@ -1,0 +1,95 @@
+---
+description: Initialize the Designer Workflow in the current project — set where sandbox apps live, draw the production isolation boundary, check required tools/MCPs, and confirm the design + supabase-integration skills are ready. Run this once per project after installing the plugin.
+argument-hint: "[optional: sandbox folder name, e.g. apps]"
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+---
+
+# Designer Workflow — project initiation (`dw-init`)
+
+You are setting up the **Designer Workflow** in the user's current project so the auto-triggering
+`design` skill knows **where it may build** and **what it must never touch**. The user is likely a
+designer or PM — keep every prompt in **plain language**, never engineer jargon.
+
+`$ARGUMENTS` (optional) is a suggested sandbox folder name. If empty, default to `apps`.
+
+Work through these steps in order. Use plain-language confirmations, not a wall of output.
+
+## 1. Read the project
+
+- Confirm you're in a git repo: `git rev-parse --is-inside-work-tree` (if not, offer `git init`).
+- Note the repo name, the current branch, and whether the working tree is clean (`git status --short`).
+- Detect the stack quickly (presence of `package.json`, `next.config.*`, `supabase/`, etc.) — just
+  enough to describe the project back to the user in one sentence.
+
+## 2. Decide where new apps live (sandbox location)
+
+Ask, in plain language:
+
+> "When you describe an app to build, where should it live? I can put each new app in a **`<folder>/`
+> subfolder of this project**, or you can have me spin up a **fresh repo per app**. Subfolder is the
+> simplest — okay?"
+
+- Default: a subfolder named from `$ARGUMENTS` (or `apps`).
+- Record their choice. Create the folder if it's the subfolder option (`mkdir -p <folder>` and add a
+  `.gitkeep`), so the design skill has a home for sandboxes.
+
+## 3. Draw the isolation boundary (the safety line)
+
+This is the most important step. Ask, plainly:
+
+> "What in here is **real / production** — the live customer data, real databases, secrets, or the
+> login/billing of the real product — that a new experimental app must **never** touch? I'll fence it
+> off so the workflow stays in its sandbox."
+
+Capture their answer. Always treat these as **off-limits by default** even if unmentioned: any
+`.env*` file, production Supabase projects, existing migrations, auth/billing of existing systems,
+other apps/repos, and `.understand-anything*/` KG files. The design skill hard-refuses these and
+writes a dev-handoff note instead.
+
+## 4. Check the tools the workflow needs
+
+Report a simple ✅/⚠️ checklist (don't dump raw errors). For each, say what it's for in plain terms
+and, if missing, the one line to fix it:
+
+- **Supabase MCP** — gives new apps a secure backend (data + login). Needed by `supabase-integration`.
+  Missing → tell them to add the Supabase MCP server in Claude Code settings.
+- **A browser tool** — to run the app and capture the mobile + desktop walkthrough. Either the
+  `chrome-devtools` MCP or the `agent-browser` skill. Check at least one is available.
+- **higgsfield MCP** *(optional)* — for brand-locked images/icons. Note if absent (assets get skipped,
+  not blocked).
+- **git + a GitHub remote** — so the workflow can open a PR at the end. Check `git remote -v`; if no
+  remote, note that PRs will be local branches until a remote is added.
+
+Also confirm the two skills are present (they ship with this plugin): `design` and
+`supabase-integration`.
+
+## 5. Write the project config
+
+Write `.designer-workflow/config.md` at the repo root so the `design` skill reads the boundary and
+sandbox location on every run. Use this shape (fill in their answers):
+
+```markdown
+# Designer Workflow — project config
+<!-- Written by /designer-workflow:dw-init. Edit by hand or re-run dw-init. -->
+
+- **Sandbox apps live in:** `apps/`            <!-- subfolder | fresh-repo-per-app -->
+- **Default app branch prefix:** `app/`
+- **Off-limits (production / never touch):**
+  - <their answer, e.g. the live `clients` table in the prod Supabase project>
+  - any `.env*`, production DBs & migrations, existing auth/billing, other apps, .understand-anything*/
+- **Walkthrough viewports:** mobile + desktop
+- **Initialized:** <repo name> on <date from `date +%Y-%m-%d`>
+```
+
+Add `.designer-workflow/` is safe to commit (it's config, not secrets) — leave that to the user.
+
+## 6. Confirm it's ready (plain language)
+
+Close with a short, non-technical summary and how to use it — **no command needed from here on**:
+
+> "Designer Workflow is set up. New apps will live in `apps/`, and I'll never touch <their
+> production things>. Whenever you want something, just describe it — *'a little tool where clients
+> upload a brief and we track it to done'* — and I'll build it, show you it running on phone and
+> desktop, and open it up for review. No commands to remember."
+
+If any required tool was missing in step 4, list just those as the only follow-ups.
