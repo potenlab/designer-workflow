@@ -68,6 +68,8 @@ designer-workflow/
 │   │   └── SKILL.md
 │   ├── supabase/               # ← bundled from supabase/agent-skills (MIT): deep Supabase knowledge
 │   ├── supabase-postgres-best-practices/  # ← bundled (MIT): Postgres perf + schema rules
+│   ├── higgsfield-assets/      # auto-uses Higgsfield MCP for every asset (images/icons/video/sound)
+│   │   └── SKILL.md
 │   └── verify-in-browser/      # mandatory test step: run every change in the Claude Chrome extension
 │       └── SKILL.md
 ├── hooks/
@@ -93,6 +95,10 @@ it.* That trains the habit, so once `designer-workflow` is installed all skills 
   questions, and single-file edits (it is deliberately intent-gated — per the acceptance tests).
 - **supabase / supabase-postgres-best-practices / supabase-integration** are consulted automatically
   for any Supabase or Postgres work, in preference to model memory.
+- **higgsfield-assets** fires whenever a visual or media asset is needed (image, icon, logo, hero,
+  video, sound) and makes Higgsfield the **only** asset path — auto-generated and auto-placed, never a
+  stock photo, emoji, or placeholder, and never a "go find an image yourself". Assets only — it stays
+  out of code, data, and copy.
 - **verify-in-browser** fires whenever something runnable was built or changed — before any
   "done"/PR.
 

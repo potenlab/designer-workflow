@@ -6,7 +6,7 @@ metadata:
   version: "0.1.0"
   date: 2026-06-12
   status: v1
-  reuses: kg-context-dispatch, supabase-integration, frontend-design, impeccable, higgsfield, verify-in-browser, claude-in-chrome, chrome-devtools, commit-commands:commit-push-pr, qa-check
+  reuses: kg-context-dispatch, supabase-integration, frontend-design, impeccable, higgsfield-assets, higgsfield, verify-in-browser, claude-in-chrome, chrome-devtools, commit-commands:commit-push-pr, qa-check
 ---
 
 # design — describe an app, get a running app
@@ -101,8 +101,9 @@ Assemble, in this order:
    project/branch — never a production project**. It verifies with `get_advisors` + a real RLS query.
 2. **UI** → use **frontend-design** for the build and **impeccable** for polish/IA/accessibility.
    Match the project's existing design system if one exists; otherwise produce a clean, branded shell.
-3. **Assets** → use **higgsfield** (brand-locked presets) for any images/icons the app needs;
-   auto-place them. Don't ask the user to hunt for assets.
+3. **Assets** → invoke the **higgsfield-assets** skill for any images/icons/illustrations/video/sound
+   the app needs. Higgsfield (brand-locked presets) is the only asset path — auto-generate and
+   auto-place them; never use stock/emoji/placeholders, and never ask the user to hunt for assets.
 4. **Wire it together** so it actually runs — typed client calls, routes, auth flow, env wiring inside
    the sandbox.
 
@@ -190,5 +191,5 @@ See `references/golden-prompts.md` for the designer/PM prompts these criteria ar
 | Secure backend: data + auth + RLS + typed client | **`supabase-integration`** skill + Supabase MCP |
 | Plain-language UI build + polish | `frontend-design`, `impeccable` |
 | Run the app + test every change (mobile + desktop, console + network) | **`verify-in-browser`** skill (Claude Chrome extension; falls back to `chrome-devtools` MCP / `agent-browser`) |
-| Brand-locked asset generation | `higgsfield` MCP |
+| Brand-locked asset generation (auto, assets only) | **`higgsfield-assets`** skill + `higgsfield` MCP |
 | PR handoff | `commit-commands:commit-push-pr`, `qa-check` |

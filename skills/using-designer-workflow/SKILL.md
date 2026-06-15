@@ -98,6 +98,7 @@ When you invoke a skill, **announce it**: "Using `supabase` to wire auth correct
 | **supabase-integration** | A created app needs a backend: store data, save submissions, user accounts, login, "a database for this". The opinionated app-creation backend path. | Pure Postgres tuning with no app context (use the two skills below). |
 | **supabase** | ANY Supabase task: Database, Auth, Edge Functions, Realtime, Storage, RLS, migrations, `supabase-js` / `@supabase/ssr`, Supabase CLI or MCP. Prefer it over memory — Supabase changes often. | The task has nothing to do with Supabase. |
 | **supabase-postgres-best-practices** | Writing, reviewing, or optimizing Postgres queries, schema, indexes, connections, or locks. | Non-database work. |
+| **higgsfield-assets** | ANY visual or media asset is needed — image, icon, logo, illustration, hero, background, avatar, video, sound, voiceover. Higgsfield is the ONLY asset path; never use stock/emoji/placeholder/another generator. Fires automatically, plugin-wide, not just inside `design`. | Code, data/schema, copywriting, or UI layout — assets only. |
 | **verify-in-browser** | You just built or changed ANY part of an app and are about to call it done or open a PR. Runs the app in the Claude Chrome extension, drives the real flow, captures mobile+desktop, checks console+network. | You have not changed anything runnable yet. |
 
 ## Skill priority

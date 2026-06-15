@@ -22,7 +22,7 @@ echo "== 3. Assert expected names are present =="
 # Tolerant of how the model formats the list: "designer-workflow:NAME" or "/NAME".
 # Exact-match the name (word-boundary, not followed by '-') so "supabase" doesn't match
 # "supabase-integration".
-for name in "dw-init" "design" "supabase-integration" "supabase" "supabase-postgres-best-practices" "using-designer-workflow" "verify-in-browser"; do
+for name in "dw-init" "design" "supabase-integration" "supabase" "supabase-postgres-best-practices" "using-designer-workflow" "higgsfield-assets" "verify-in-browser"; do
   if echo "$OUT" | grep -qE "(designer-workflow:|/|\`)${name}([^-a-z]|\`|$)"; then
     echo "  ok: $name"
   else
