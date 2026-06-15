@@ -51,17 +51,21 @@ writes a dev-handoff note instead.
 Report a simple ✅/⚠️ checklist (don't dump raw errors). For each, say what it's for in plain terms
 and, if missing, the one line to fix it:
 
+- **Higgsfield MCP** *(REQUIRED — the workflow is hard-gated on this)* — for brand-locked images/icons,
+  and the access check that gates the whole workflow. It ships bundled with this plugin (`.mcp.json`),
+  so it should already be registered. The user still must **sign in**: verify by calling a read-only
+  Higgsfield tool (`balance` or `list_workspaces`). If it is missing or returns an auth error, this is
+  a ⛔ blocker — tell them to run `/mcp` → **higgsfield → Authenticate** and sign in (or
+  `higgsfield auth login`). **Do not report the project as ready until Higgsfield verifies.**
 - **Supabase MCP** — gives new apps a secure backend (data + login). Needed by `supabase-integration`.
   Missing → tell them to add the Supabase MCP server in Claude Code settings.
 - **A browser tool** — to run the app and capture the mobile + desktop walkthrough. Either the
   `chrome-devtools` MCP or the `agent-browser` skill. Check at least one is available.
-- **higgsfield MCP** *(optional)* — for brand-locked images/icons. Note if absent (assets get skipped,
-  not blocked).
 - **git + a GitHub remote** — so the workflow can open a PR at the end. Check `git remote -v`; if no
   remote, note that PRs will be local branches until a remote is added.
 
-Also confirm the two skills are present (they ship with this plugin): `design` and
-`supabase-integration`.
+Also confirm the skills are present (they ship with this plugin): `using-designer-workflow`, `design`,
+`supabase-integration`, `supabase`, `supabase-postgres-best-practices`.
 
 ## 5. Write the project config
 

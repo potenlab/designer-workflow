@@ -53,21 +53,79 @@ designer-workflow/
 ├── .claude-plugin/
 │   ├── plugin.json             # plugin manifest
 │   └── marketplace.json        # self-marketplace (this repo lists itself)
+├── .mcp.json                   # bundled MCP servers → Higgsfield auto-installs with the plugin
 ├── commands/
 │   └── dw-init.md              # /designer-workflow:dw-init — per-project setup
 ├── skills/
+│   ├── using-designer-workflow/ # dispatcher: the "check + use a skill before responding" contract
+│   │   └── SKILL.md
 │   ├── design/                 # orchestrator: describe an app → running app + PR
 │   │   ├── SKILL.md
 │   │   └── references/
 │   │       ├── golden-prompts.md
 │   │       └── dev-handoff-template.md
-│   └── supabase-integration/   # backend half: schema + RLS + auth + typed client (Supabase MCP)
+│   ├── supabase-integration/   # backend half: schema + RLS + auth + typed client (Supabase MCP)
+│   │   └── SKILL.md
+│   ├── supabase/               # ← bundled from supabase/agent-skills (MIT): deep Supabase knowledge
+│   ├── supabase-postgres-best-practices/  # ← bundled (MIT): Postgres perf + schema rules
+│   └── verify-in-browser/      # mandatory test step: run every change in the Claude Chrome extension
 │       └── SKILL.md
+├── hooks/
+│   ├── hooks.json              # SessionStart hook (startup|clear|compact) → injects the dispatcher
+│   ├── session-start           # emits the dispatcher skill as context-injection JSON
+│   └── run-hook.cmd            # polyglot wrapper so the hook runs on Unix + Windows
 └── docs/                       # TIMELINE.md + proposal.html/pdf
 ```
 
-`design` orchestrates and delegates the backend to `supabase-integration`. Both auto-trigger from
-their `description`; `dw-init` is the one explicit command, used only at setup.
+### Auto-activation (no command, no setup — superpowers-style)
+
+Skills already activate from their `description` the moment the plugin is installed. To make that
+**proactive and resilient**, the plugin uses the [`obra/superpowers`](https://github.com/obra/superpowers)
+pattern: a single **`SessionStart`** hook (matcher `startup|clear|compact`) runs `hooks/session-start`,
+which injects the **full text of the `using-designer-workflow` dispatcher skill** into context. The
+`compact` matcher means the rule **re-fires after context compaction**, so it survives long sessions.
+
+The dispatcher is a behavioral contract, not a feature list: *check for a relevant skill before
+responding, and if there is even a 1% chance one applies, invoke it with the `Skill` tool and announce
+it.* That trains the habit, so once `designer-workflow` is installed all skills are used automatically:
+
+- **design** fires on app-creation intent ("make me a tool that…") and stays silent on bug-fixes,
+  questions, and single-file edits (it is deliberately intent-gated — per the acceptance tests).
+- **supabase / supabase-postgres-best-practices / supabase-integration** are consulted automatically
+  for any Supabase or Postgres work, in preference to model memory.
+- **verify-in-browser** fires whenever something runnable was built or changed — before any
+  "done"/PR.
+
+Two rules cut across **all** skills, enforced by the dispatcher:
+
+- **Think as a developer, respond as a designer/PM** — real engineering underneath; plain language +
+  a working app on the surface, never raw code/SQL/migrations in chat (engineer detail lives only in
+  the PR).
+- **Verify every development in a browser** — no build or change is "done" until `verify-in-browser`
+  has run it in the **Claude Chrome extension** (`claude-in-chrome`), completed the real user flow,
+  captured a mobile + desktop walkthrough, and confirmed the console + network are clean. It re-runs
+  after every change, not just at the end.
+
+`design` orchestrates and delegates the backend to `supabase-integration`, which in turn defers to the
+two **bundled official Supabase skills** (`supabase`, `supabase-postgres-best-practices`, vendored from
+[`supabase/agent-skills`](https://github.com/supabase/agent-skills), MIT). `dw-init` is the one explicit
+command, used only at setup. Because the official skills ship inside the plugin, installing
+`designer-workflow` installs them too — no `npx skills add` step needed.
+
+### Higgsfield is required — verify-first hard gate
+
+[Higgsfield](https://higgsfield.ai/mcp) is a **hard dependency**, auto-installed via `.mcp.json`
+(server `higgsfield` → `https://mcp.higgsfield.ai/mcp`, HTTP + OAuth). The workflow **refuses to run
+until Higgsfield is connected and the user is signed in**:
+
+- The dispatcher and `design` skill **verify first** — before any plan, build, SQL, or browser step,
+  they call a read-only Higgsfield tool (`balance` / `list_workspaces`). On success → proceed.
+- If the tool is missing or returns an auth/connection error, the workflow **stops** and asks the user
+  to sign in — no plan, no build, no PR until it verifies.
+
+**Sign in once after install:** run `/mcp` → **higgsfield → Authenticate** and log in in the browser
+(CLI alternative: `higgsfield auth login`). The MCP server itself is already registered by the plugin;
+only the sign-in is on the user. This makes Higgsfield access the gate for the entire workflow.
 
 ## Develop / test locally
 
@@ -84,13 +142,18 @@ claude plugin validate /path/to/designer-workflow
 
 ## Requirements
 
-- **Supabase MCP** — secure backend for new apps (used by `supabase-integration`).
+- **Higgsfield MCP** *(REQUIRED — hard gate)* — bundled via `.mcp.json` (`https://mcp.higgsfield.ai/mcp`).
+  Brand-locked assets **and** the access check that gates the whole workflow. Sign in once after install
+  via `/mcp` → **higgsfield → Authenticate** (or `higgsfield auth login`). Until it verifies, the
+  workflow refuses to build.
+- **Supabase MCP** — secure backend for new apps (used by `supabase-integration` and the bundled
+  `supabase` skill). The Supabase knowledge skills themselves ship with the plugin — no separate install.
 - **A browser tool** — `chrome-devtools` MCP *or* the `agent-browser` skill — to run apps and capture
   the mobile + desktop walkthrough.
-- **higgsfield MCP** *(optional)* — brand-locked image/icon assets.
 - **git + a GitHub remote** — so the workflow can open a PR.
 
-`dw-init` checks all of these and tells you, in plain language, what (if anything) is missing.
+`dw-init` checks all of these and tells you, in plain language, what (if anything) is missing —
+Higgsfield is treated as a blocker, the rest as warnings.
 
 ## Status
 

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# SessionStart hook for the designer-workflow plugin.
+# Injects the full text of the `using-designer-workflow` dispatcher skill into the
+# session context so the plugin's skills are used proactively from the first turn —
+# the same approach as obra/superpowers. Re-fires on clear/compact so the rule
+# survives context loss.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+dispatcher_content=$(cat "${PLUGIN_ROOT}/skills/using-designer-workflow/SKILL.md" 2>&1 \
+  || echo "Error reading using-designer-workflow skill")
+
+# Escape a string for embedding inside a JSON string value. Each ${s//old/new}
+# is a single fast pass (vs a char-by-char loop).
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+dispatcher_escaped=$(escape_for_json "$dispatcher_content")
+
+# Loud, unmissable lead-in: Higgsfield is a REQUIRED, verify-first dependency. The full gate
+# (how to verify, what to say on failure) rides along in the dispatcher skill text below.
+gate_lead="<HARD-GATE-HIGGSFIELD>\nThe designer-workflow plugin REQUIRES Higgsfield. Before you restate a plan, build, write SQL, run a browser, or invoke ANY designer-workflow skill (design / supabase-integration / supabase / supabase-postgres-best-practices), you MUST first verify the Higgsfield MCP server is connected AND the user is signed in by calling a read-only Higgsfield tool (mcp__...higgsfield...__balance, or list_workspaces). If that tool is missing or returns an auth/connection error, STOP: do not plan, do not build — reply only with the /mcp connect-and-sign-in instructions and wait. No verified Higgsfield access means no workflow. This is not optional.\n</HARD-GATE-HIGGSFIELD>"
+
+session_context="<EXTREMELY_IMPORTANT>\nThe designer-workflow plugin is installed.\n\n${gate_lead}\n\n**Below is the full content of your 'designer-workflow:using-designer-workflow' skill — your introduction to using this plugin's skills. For the other skills (design, supabase-integration, supabase, supabase-postgres-best-practices) use the 'Skill' tool when they apply:**\n\n${dispatcher_escaped}\n</EXTREMELY_IMPORTANT>"
+
+# Emit context injection as JSON. Different platforms read different fields:
+#   Cursor  -> additional_context (top-level, snake_case)
+#   Claude  -> hookSpecificOutput.additionalContext (nested)
+#   Copilot / SDK standard -> additionalContext (top-level)
+# Emit only the field the current platform consumes. printf (not heredoc) avoids
+# the bash 5.3+ heredoc hang.
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$session_context"
+fi
+
+exit 0

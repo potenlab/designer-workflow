@@ -6,7 +6,7 @@ metadata:
   version: "0.1.0"
   date: 2026-06-12
   status: v1
-  reuses: kg-context-dispatch, supabase-integration, frontend-design, impeccable, higgsfield, verify, chrome-devtools, commit-commands:commit-push-pr, qa-check
+  reuses: kg-context-dispatch, supabase-integration, frontend-design, impeccable, higgsfield, verify-in-browser, claude-in-chrome, chrome-devtools, commit-commands:commit-push-pr, qa-check
 ---
 
 # design — describe an app, get a running app
@@ -26,7 +26,25 @@ infrastructure — you are assembling: KG context → backend → UI → run →
 
 ---
 
-## 0. Does this even apply? (gate before you act)
+## 0. Gate before you act
+
+### 0a. Higgsfield access check (REQUIRED — do this first, every time)
+
+**Higgsfield is a hard dependency.** Before restating a plan or building anything, verify the
+Higgsfield MCP server is connected and the user is **signed in** by calling a read-only Higgsfield
+tool — `balance` (preferred) or `list_workspaces` (`mcp__...higgsfield...__balance`).
+
+- Tool returns a balance/workspaces → proceed to 0b.
+- Tool missing, or an auth / unauthorized / connection error → **STOP.** Do not restate, build, or
+  write code. Tell the user, in plain language, to connect + sign in, then wait:
+
+  > "Before I can build anything I need Higgsfield connected. It ships with this plugin — just sign in:
+  > run `/mcp`, pick **higgsfield → Authenticate**, and log in to your Higgsfield account in the
+  > browser. (Or `higgsfield auth login`.) Tell me once it shows connected and I'll continue."
+
+No verified, signed-in Higgsfield → no workflow. Never skip this because "assets are optional."
+
+### 0b. Does this even apply? (intent gate)
 
 Run the loop **only** when the user is asking to **create an application** (a new, runnable thing with
 its own data/UI). Signals: "make me a tool/app/site that…", "I want something where…", "build a
@@ -93,14 +111,20 @@ in product language ("Login works; I tested that one account can't see another's
 
 ### ③ Run it + show the walkthrough (mobile + desktop)
 
-A design that you can't watch run is not done. Use the **verify** skill and the **chrome-devtools**
-MCP (or `agent-browser`) to:
+A design that you can't watch run is not done. **Invoke the `verify-in-browser` skill** — it is the
+mandatory test step for every development. It drives the running app with the **Claude Chrome
+extension** (`claude-in-chrome`; falls back to the `chrome-devtools` MCP or `agent-browser`) to:
 
-- Actually start the app and drive the core flow end-to-end.
-- Capture a **walkthrough at two viewports — mobile and desktop** (screenshots and/or a short screen
+- Actually start the app and drive the core user flow end-to-end (including the access rule —
+  one account must not see another's data).
+- Check the **console and network are clean** (no errors, no failed requests) on that flow.
+- Capture a **walkthrough at two viewports — mobile and desktop** (screenshots and/or a short
   recording). These are how *both* the user and the developer judge the result. (No preview-deploy
   infra — the recording in the PR is the deliverable.)
-- If something is broken, fix it inside the sandbox and re-capture. Don't show a broken walkthrough.
+- If something is broken, fix it inside the sandbox and **re-verify**. Don't show a broken walkthrough.
+
+This is not optional and not a one-time step: **re-run `verify-in-browser` after every change** to the
+app, not just at the end.
 
 ### ④ Open the PR (never commit to main)
 
@@ -165,6 +189,6 @@ See `references/golden-prompts.md` for the designer/PM prompts these criteria ar
 | Map intent → app structure + blast radius (your awareness only) | `kg-context-dispatch` |
 | Secure backend: data + auth + RLS + typed client | **`supabase-integration`** skill + Supabase MCP |
 | Plain-language UI build + polish | `frontend-design`, `impeccable` |
-| Run the app + visual verification (mobile + desktop) | `verify` skill, `chrome-devtools` MCP / `agent-browser` |
+| Run the app + test every change (mobile + desktop, console + network) | **`verify-in-browser`** skill (Claude Chrome extension; falls back to `chrome-devtools` MCP / `agent-browser`) |
 | Brand-locked asset generation | `higgsfield` MCP |
 | PR handoff | `commit-commands:commit-push-pr`, `qa-check` |

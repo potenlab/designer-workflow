@@ -17,9 +17,9 @@ the first try**, so it actually runs. It is the engineer's half of the designer/
 > unless asked. Translate "save the brief" → a table + RLS + a typed client call, and report back in
 > plain language ("Briefs are now saved per user; nobody can see anyone else's.").
 
-It builds on the official Supabase skills (`supabase`, `supabase-postgres-best-practices`). If those
-are installed (`npx skills add supabase/agent-skills`), defer to them for deep Postgres performance
-rules; this skill is the **opinionated app-creation path** on top.
+It builds on the official Supabase skills (`supabase`, `supabase-postgres-best-practices`), which now
+**ship bundled with this plugin** — no separate install. Defer to them for deep Postgres performance
+rules and current Supabase API details; this skill is the **opinionated app-creation path** on top.
 
 ---
 
@@ -144,7 +144,8 @@ guardrail as the rest of `/design`.
 
 ## Reference
 
-- Official skills: `supabase`, `supabase-postgres-best-practices` (`npx skills add supabase/agent-skills`)
+- Official skills: `supabase`, `supabase-postgres-best-practices` — bundled in this plugin under `skills/`
+  (vendored from `supabase/agent-skills`, MIT). Stand-alone install: `npx skills add supabase/agent-skills`.
 - Security index: `https://supabase.com/docs/guides/security/product-security.md`
 - RLS guide: `https://supabase.com/docs/guides/database/postgres/row-level-security.md`
 - MCP setup: `https://supabase.com/docs/guides/getting-started/mcp`
