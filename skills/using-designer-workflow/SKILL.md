@@ -40,9 +40,11 @@ BEFORE responding — including before asking clarifying questions.
 
 If a skill applies, using it is not optional. You cannot rationalize your way out of it.
 
-The one exception is the `design` skill, which is deliberately intent-gated: it fires ONLY on
-app-creation intent and must stay quiet on bug-fixes, questions, and single-file edits (see the
-catalog below). For the Supabase / Postgres skills there is no such gate — reach for them.
+The app-building skills are deliberately intent-gated: `plan-and-spec` (the entry point for any
+app/feature request) fires ONLY on app-creation intent and must stay quiet on bug-fixes, questions,
+and single-file edits (see the catalog below). `goal-loop` and `design` run downstream of it
+(`plan-and-spec` → on the user's "correct" → `goal-loop` → `design` per story), so you normally don't
+invoke them directly. For the Supabase / Postgres skills there is no such gate — reach for them.
 </EXTREMELY-IMPORTANT>
 
 ## Instruction priority
@@ -68,24 +70,26 @@ to check — if it turns out wrong for the situation, you simply don't follow it
 ```dot
 digraph dw_flow {
     "User message received" [shape=doublecircle];
-    "App-creation intent?" [shape=diamond];
-    "Invoke design skill" [shape=box];
+    "App / feature build intent?" [shape=diamond];
+    "Invoke plan-and-spec skill" [shape=box];
     "Supabase / Postgres work?" [shape=diamond];
     "Invoke the matching Supabase skill" [shape=box];
     "Announce: 'Using [skill] to [purpose]'" [shape=box];
     "Follow the skill exactly" [shape=box];
     "Respond (incl. clarifying questions)" [shape=doublecircle];
 
-    "User message received" -> "App-creation intent?";
-    "App-creation intent?" -> "Invoke design skill" [label="yes (build an app/tool/site)"];
-    "App-creation intent?" -> "Supabase / Postgres work?" [label="no"];
-    "Invoke design skill" -> "Announce: 'Using [skill] to [purpose]'";
+    "User message received" -> "App / feature build intent?";
+    "App / feature build intent?" -> "Invoke plan-and-spec skill" [label="yes (build an app/tool/site/feature)"];
+    "App / feature build intent?" -> "Supabase / Postgres work?" [label="no"];
+    "Invoke plan-and-spec skill" -> "Announce: 'Using [skill] to [purpose]'";
     "Supabase / Postgres work?" -> "Invoke the matching Supabase skill" [label="yes, even 1%"];
     "Supabase / Postgres work?" -> "Respond (incl. clarifying questions)" [label="definitely not"];
     "Invoke the matching Supabase skill" -> "Announce: 'Using [skill] to [purpose]'";
     "Announce: 'Using [skill] to [purpose]'" -> "Follow the skill exactly";
     "Follow the skill exactly" -> "Respond (incl. clarifying questions)";
 }
+// plan-and-spec then drives the rest: clarify → confirm → spec + issues →
+// on "correct" → goal-loop → design (per story) → verify-in-browser → PR.
 ```
 
 When you invoke a skill, **announce it**: "Using `supabase` to wire auth correctly."
@@ -94,7 +98,9 @@ When you invoke a skill, **announce it**: "Using `supabase` to wire auth correct
 
 | Skill | Invoke when | Do NOT invoke when |
 |---|---|---|
-| **design** | The user describes an app, tool, site, dashboard, tracker, or intake to **build** in plain language ("make me a tool that…", "an app where…"). Runs: restate plan → build on a sandbox branch → run + show mobile+desktop walkthrough → open a PR. | A single-file edit, a bug fix, or a question. It must stay quiet here. |
+| **plan-and-spec** | **The entry point for any app/feature request.** The user describes an app, tool, site, dashboard, tracker, intake, or new feature to **build** in plain language ("make me a tool that…", "add a feature where…"). Runs: clarify with questions → restate plan → on "correct" write a technical spec to `/docs/plan` + a designer-language GitHub epic + child stories → hand off to `goal-loop`. | A single-file edit, a bug fix, or a question. It must stay quiet here. |
+| **goal-loop** | Downstream of `plan-and-spec` — autonomously builds the planned epic, **one child story per turn** (build → verify → PR), until the goal is met. Normally auto-triggered by `plan-and-spec` on "correct"; invoke directly only when an epic of story issues already exists. | No plan/spec/epic exists yet (run `plan-and-spec` first). |
+| **design** | Build **one** story/app full-stack (backend + UI + assets + wire) on a sandbox branch, run it, show a mobile+desktop walkthrough, open a PR. Usually called **by `goal-loop`** per story; can run standalone for a single ad-hoc build. | A single-file edit, a bug fix, or a question. |
 | **supabase-integration** | A created app needs a backend: store data, save submissions, user accounts, login, "a database for this". The opinionated app-creation backend path. | Pure Postgres tuning with no app context (use the two skills below). |
 | **supabase** | ANY Supabase task: Database, Auth, Edge Functions, Realtime, Storage, RLS, migrations, `supabase-js` / `@supabase/ssr`, Supabase CLI or MCP. Prefer it over memory — Supabase changes often. | The task has nothing to do with Supabase. |
 | **supabase-postgres-best-practices** | Writing, reviewing, or optimizing Postgres queries, schema, indexes, connections, or locks. | Non-database work. |
@@ -105,8 +111,10 @@ When you invoke a skill, **announce it**: "Using `supabase` to wire auth correct
 
 When more than one could apply: **process/orchestration first, implementation second.**
 
-- "Let's build X with logins" → `design` (orchestrator) first; it pulls in `supabase-integration`,
-  which defers to `supabase` / `supabase-postgres-best-practices` for the details.
+- "Let's build X with logins" → `plan-and-spec` first (clarify → spec + issues → on "correct" →
+  `goal-loop` → `design` per story); the build chain pulls in `supabase-integration`, which defers to
+  `supabase` / `supabase-postgres-best-practices` for the details. Don't jump straight to `design` or
+  `goal-loop` for a fresh request — `plan-and-spec` is the entry point.
 - "Speed up this slow query" → `supabase-postgres-best-practices` directly.
 
 ## Red flags (you are rationalizing — STOP)
@@ -116,8 +124,9 @@ When more than one could apply: **process/orchestration first, implementation se
 | "This is just a quick Supabase question" | Questions are tasks. Invoke `supabase`. |
 | "I remember how RLS works" | Supabase changes; the skill has the current rules. Invoke it. |
 | "I'll write the schema first, then check" | Check BEFORE writing. The skill shapes the schema. |
-| "The design loop is overkill for this app" | If it is app-creation intent, run `design`. |
-| "design should fire on this bug fix" | No — `design` is intent-gated. Stay quiet, just fix it. |
+| "Planning is overkill for this app" | If it is app/feature-creation intent, run `plan-and-spec` — it's the entry point. |
+| "I'll just start building, skip the spec/issues" | No — `plan-and-spec` clarifies and gets one "correct" before any build. Run it first. |
+| "plan-and-spec should fire on this bug fix" | No — it's intent-gated. Stay quiet, just fix it. |
 
 ## Persona — think as a developer, respond as a designer/PM (ALL skills)
 

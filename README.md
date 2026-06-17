@@ -38,13 +38,25 @@ Just say what you want:
 > "a clean little gallery app where I drop images and tag them"
 > "an intake tool: clients submit a brief, and we track it New → Doing → Done"
 
-The `design` skill recognizes the intent and runs the loop:
+The workflow recognizes the intent and runs the full pipeline — **plan → confirm → build → ship**:
 
-1. **Restate** the app plan in plain language → get your okay.
-2. **Build** the full stack on an isolated **sandbox branch** (data + backend + UI). It never touches
-   other apps, production data, secrets, or auth/billing.
-3. **Run** it and show a **mobile + desktop** walkthrough.
-4. **Open a PR** with the walkthrough + a human summary.
+1. **Clarify & plan** (`plan-and-spec`) — it asks a few plain-language questions, restates the plan,
+   and shows how it'd break the work into pieces.
+2. **Confirm — the one gate** — *"Is this plan correct?"* On your **yes** it writes a **technical spec**
+   to `docs/plan/` (for the developer — never shown in chat) and opens a **GitHub epic + one child issue
+   per piece**, written in plain product language.
+3. **Build autonomously** (`goal-loop`) — it works the pieces **one at a time**: builds each on an
+   isolated **sandbox branch**, runs it, captures a **mobile + desktop** walkthrough, and opens **one PR
+   per piece** that closes its issue. It never touches other apps, production data, secrets, or
+   auth/billing.
+4. **Report** — when every piece is built and verified, it hands you all the review links.
+
+You only ever make **one decision** ("is the plan correct?"); after that it runs to done. If you'd
+rather stop at the plan, say *"just plan it, don't build yet."* There's no command to remember, but
+`/designer-workflow:dw-plan` will kick the planning off explicitly if you want to be certain.
+
+The split of audiences is deliberate: **chat stays plain language**, the **technical spec** lives in
+`docs/plan/`, and the **GitHub issues** are designer/product language for the team to track.
 
 ## What's in the plugin
 
@@ -55,11 +67,19 @@ designer-workflow/
 │   └── marketplace.json        # self-marketplace (this repo lists itself)
 ├── .mcp.json                   # bundled MCP servers → Higgsfield auto-installs with the plugin
 ├── commands/
-│   └── dw-init.md              # /designer-workflow:dw-init — per-project setup
+│   ├── dw-init.md              # /designer-workflow:dw-init — per-project setup
+│   └── dw-plan.md              # /designer-workflow:dw-plan — explicit start of the planning pipeline
 ├── skills/
 │   ├── using-designer-workflow/ # dispatcher: the "check + use a skill before responding" contract
 │   │   └── SKILL.md
-│   ├── design/                 # orchestrator: describe an app → running app + PR
+│   ├── plan-and-spec/          # ENTRY: clarify → confirm → technical spec (docs/plan) + designer GitHub epic+stories
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── spec-template.md      # the technical /docs/plan spec (engineer language)
+│   │       └── issue-templates.md    # epic + child-story issues (designer language)
+│   ├── goal-loop/              # autonomous executor: build the epic one child story per turn → one PR each
+│   │   └── SKILL.md
+│   ├── design/                 # builds ONE story full-stack → running app + PR (called per story by goal-loop)
 │   │   ├── SKILL.md
 │   │   └── references/
 │   │       ├── golden-prompts.md
@@ -91,8 +111,15 @@ The dispatcher is a behavioral contract, not a feature list: *check for a releva
 responding, and if there is even a 1% chance one applies, invoke it with the `Skill` tool and announce
 it.* That trains the habit, so once `designer-workflow` is installed all skills are used automatically:
 
-- **design** fires on app-creation intent ("make me a tool that…") and stays silent on bug-fixes,
-  questions, and single-file edits (it is deliberately intent-gated — per the acceptance tests).
+- **plan-and-spec** is the **entry point** — it fires on app/feature-creation intent ("make me a tool
+  that…", "add a feature where…") and stays silent on bug-fixes, questions, and single-file edits (it is
+  deliberately intent-gated — per the acceptance tests). It clarifies, gets one "is this correct?", then
+  writes the technical spec + the designer-language GitHub epic/stories.
+- **goal-loop** runs downstream: on your "correct" it builds the epic **autonomously, one child story
+  per turn** (build → verify → one PR per story), and reports when the goal is met. You don't invoke it
+  directly.
+- **design** builds a single story full-stack (backend + UI + assets + wire) → running app + PR; it's
+  normally called **by goal-loop** once per story.
 - **supabase / supabase-postgres-best-practices / supabase-integration** are consulted automatically
   for any Supabase or Postgres work, in preference to model memory.
 - **higgsfield-assets** fires whenever a visual or media asset is needed (image, icon, logo, hero,

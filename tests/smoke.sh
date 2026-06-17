@@ -22,7 +22,7 @@ echo "== 3. Assert expected names are present =="
 # Tolerant of how the model formats the list: "designer-workflow:NAME" or "/NAME".
 # Exact-match the name (word-boundary, not followed by '-') so "supabase" doesn't match
 # "supabase-integration".
-for name in "dw-init" "design" "supabase-integration" "supabase" "supabase-postgres-best-practices" "using-designer-workflow" "higgsfield-assets" "verify-in-browser"; do
+for name in "dw-init" "dw-plan" "plan-and-spec" "goal-loop" "design" "supabase-integration" "supabase" "supabase-postgres-best-practices" "using-designer-workflow" "higgsfield-assets" "verify-in-browser"; do
   if echo "$OUT" | grep -qE "(designer-workflow:|/|\`)${name}([^-a-z]|\`|$)"; then
     echo "  ok: $name"
   else
@@ -85,5 +85,26 @@ grep -qi 'Verify every development' "$DISP" \
 grep -qi 'claude-in-chrome\|Claude Chrome extension' "$PLUGIN_DIR/skills/verify-in-browser/SKILL.md" \
   && echo "  ok: verify-in-browser uses the Claude Chrome extension" \
   || { echo "  MISSING: Claude Chrome extension in verify-in-browser"; exit 1; }
+
+echo "== 8. Planning pipeline: plan-and-spec → goal-loop wiring =="
+PS="$PLUGIN_DIR/skills/plan-and-spec/SKILL.md"
+GL="$PLUGIN_DIR/skills/goal-loop/SKILL.md"
+[ -f "$PS" ] || { echo "  MISSING: plan-and-spec/SKILL.md"; exit 1; }
+[ -f "$GL" ] || { echo "  MISSING: goal-loop/SKILL.md"; exit 1; }
+grep -qi 'docs/plan' "$PS" \
+  && echo "  ok: plan-and-spec writes a technical spec to /docs/plan" \
+  || { echo "  MISSING: /docs/plan spec target in plan-and-spec"; exit 1; }
+grep -qi 'goal-loop' "$PS" \
+  && echo "  ok: plan-and-spec hands off to goal-loop on confirmation" \
+  || { echo "  MISSING: goal-loop handoff in plan-and-spec"; exit 1; }
+grep -qi 'one PR per story\|one PR for this story' "$GL" \
+  && echo "  ok: goal-loop opens one PR per story" \
+  || { echo "  MISSING: one-PR-per-story rule in goal-loop"; exit 1; }
+grep -qi 'HARD-GATE\|hard-gate\|Higgsfield hard-gate' "$GL" \
+  && echo "  ok: goal-loop carries the Higgsfield hard gate at build time" \
+  || { echo "  MISSING: Higgsfield gate in goal-loop"; exit 1; }
+for f in "skills/plan-and-spec/references/spec-template.md" "skills/plan-and-spec/references/issue-templates.md"; do
+  [ -f "$PLUGIN_DIR/$f" ] && echo "  ok: $f present" || { echo "  MISSING: $f"; exit 1; }
+done
 
 echo "All smoke checks passed."
