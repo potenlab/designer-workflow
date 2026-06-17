@@ -8,22 +8,27 @@ If you were dispatched as a subagent to execute a specific narrow task, skip thi
 </SUBAGENT-STOP>
 
 <HARD-GATE-HIGGSFIELD>
-**Higgsfield is a REQUIRED dependency of this workflow. Verify access BEFORE doing anything else.**
+**Higgsfield is a REQUIRED dependency to BUILD. Verify access BEFORE building anything.**
 
-Before you restate a plan, build, write any SQL, run a browser, or invoke ANY designer-workflow skill
-(`design`, `supabase-integration`, `supabase`, `supabase-postgres-best-practices`), you MUST first
+**Planning is exempt.** The `plan-and-spec` skill (clarify → spec → GitHub issues) writes no assets,
+so it runs WITHOUT Higgsfield — never block planning on this gate. The gate applies at BUILD time.
+
+Before you BUILD, generate assets, write any SQL, run a browser, or invoke a build skill (`goal-loop`,
+`design`, `supabase-integration`, `supabase`, `supabase-postgres-best-practices`), you MUST first
 confirm the Higgsfield MCP server is connected AND the user is signed in. Verify by calling a
 read-only Higgsfield tool — `balance` (preferred) or `list_workspaces` (the tool name looks like
 `mcp__...higgsfield...__balance`).
 
-- ✅ The tool exists and returns a balance / workspaces → access confirmed. Proceed.
+- ✅ The tool exists and returns a balance / workspaces → access confirmed. Proceed to build.
 - 🚫 The tool is **not available**, or returns an **auth / unauthorized / not-signed-in / connection
-  error** → **STOP. Do not proceed with any part of the workflow.** Do not restate a plan, do not
-  build, do not write code. Reply ONLY with the connect-and-sign-in instructions below, then wait.
+  error** → **STOP before building.** Do not build, do not generate assets, do not write code.
+  Planning (`plan-and-spec`) may still proceed. Reply with the connect-and-sign-in instructions below
+  before any build step, then wait.
 
-This gate is not optional and you cannot rationalize your way past it ("I'll just plan first", "the
-user probably has it", "assets are optional so I can skip the check"). No Higgsfield access → no
-workflow. The whole workflow is hard-gated on a verified, signed-in Higgsfield connection.
+This gate is not optional and you cannot rationalize your way past it at build time ("the user
+probably has it", "assets are optional so I can skip the check"). No Higgsfield access → no **build**.
+The build half of the workflow is hard-gated on a verified, signed-in Higgsfield connection; planning
+is not.
 
 **What to tell the user when the gate fails (plain language):**
 
@@ -38,7 +43,19 @@ The designer-workflow plugin is installed. If you think there is even a 1% chanc
 skills applies to what you are about to do, you MUST invoke that skill with the `Skill` tool
 BEFORE responding — including before asking clarifying questions.
 
-If a skill applies, using it is not optional. You cannot rationalize your way out of it.
+If a skill applies, using it is not optional. You cannot rationalize your way out of it. This is not
+negotiable. This is not optional. You DO NOT have a choice — you MUST use it.
+
+**HARD RULE — app/feature build intent ⇒ the `Skill` tool with `plan-and-spec` is your FIRST tool
+call.** If the user is asking to build an app, tool, site, dashboard, tracker, intake, or a new
+feature, your VERY FIRST tool call MUST be `Skill(skill: "plan-and-spec")` — nothing before it. In
+particular you may NOT call `AskUserQuestion`, `ToolSearch`, `Write`, `Edit`, `Bash`, `TodoWrite`, or
+a browser tool first, and you may NOT start clarifying, designing, or coding inline. **The dispatcher
+text you are reading now is only a summary — it does NOT replace invoking the skill.** `plan-and-spec`
+carries the real clarify questions, the spec template, the GitHub issue templates, the confirmation
+gate, and the hand-off to `goal-loop`; you cannot reproduce those from memory. Asking your own
+clarifying questions instead of invoking the skill ("I'll just ask first") is the most common failure —
+do not do it. Invoke `plan-and-spec`; IT runs the clarify step for you.
 
 The app-building skills are deliberately intent-gated: `plan-and-spec` (the entry point for any
 app/feature request) fires ONLY on app-creation intent and must stay quiet on bug-fixes, questions,
@@ -70,8 +87,9 @@ to check — if it turns out wrong for the situation, you simply don't follow it
 ```dot
 digraph dw_flow {
     "User message received" [shape=doublecircle];
+    "About to build / Write / Edit / Bash / plan-mode?" [shape=doublecircle];
     "App / feature build intent?" [shape=diamond];
-    "Invoke plan-and-spec skill" [shape=box];
+    "Invoke plan-and-spec skill FIRST (before any tool)" [shape=box];
     "Supabase / Postgres work?" [shape=diamond];
     "Invoke the matching Supabase skill" [shape=box];
     "Announce: 'Using [skill] to [purpose]'" [shape=box];
@@ -79,16 +97,20 @@ digraph dw_flow {
     "Respond (incl. clarifying questions)" [shape=doublecircle];
 
     "User message received" -> "App / feature build intent?";
-    "App / feature build intent?" -> "Invoke plan-and-spec skill" [label="yes (build an app/tool/site/feature)"];
+    // Second entry: catch yourself the instant you're tempted to start building.
+    "About to build / Write / Edit / Bash / plan-mode?" -> "App / feature build intent?";
+    "App / feature build intent?" -> "Invoke plan-and-spec skill FIRST (before any tool)" [label="yes (build an app/tool/site/feature)"];
     "App / feature build intent?" -> "Supabase / Postgres work?" [label="no"];
-    "Invoke plan-and-spec skill" -> "Announce: 'Using [skill] to [purpose]'";
+    "Invoke plan-and-spec skill FIRST (before any tool)" -> "Announce: 'Using [skill] to [purpose]'";
     "Supabase / Postgres work?" -> "Invoke the matching Supabase skill" [label="yes, even 1%"];
     "Supabase / Postgres work?" -> "Respond (incl. clarifying questions)" [label="definitely not"];
     "Invoke the matching Supabase skill" -> "Announce: 'Using [skill] to [purpose]'";
     "Announce: 'Using [skill] to [purpose]'" -> "Follow the skill exactly";
     "Follow the skill exactly" -> "Respond (incl. clarifying questions)";
 }
-// plan-and-spec then drives the rest: clarify → confirm → spec + issues →
+// Two entry points (both double-circles): on every user message AND the moment you catch yourself
+// about to Write/Edit/Bash or enter plan mode for a build. Either way, app/feature intent routes to
+// plan-and-spec FIRST. plan-and-spec then drives the rest: clarify → confirm → spec + issues →
 // on "correct" → goal-loop → design (per story) → verify-in-browser → PR.
 ```
 
@@ -121,11 +143,18 @@ When more than one could apply: **process/orchestration first, implementation se
 
 | Thought | Reality |
 |---|---|
+| "I'll just write this one file / start the app first" | STOP. Check BEFORE doing anything. On build intent, `plan-and-spec` comes before any `Write`/`Edit`/`Bash`. |
+| "Let me explore the codebase / files first" | The skills tell you HOW to explore. Invoke `plan-and-spec` first. |
+| "I need more context first, let me ask / gather info" | The skill check comes BEFORE clarifying questions. `plan-and-spec` does the clarifying. |
+| "I'll just ask the clarifying questions myself" | No — `Skill(plan-and-spec)` FIRST. It carries the real questions, templates, gate, and handoff. AskUserQuestion before the Skill call is the #1 bypass. |
+| "The dispatcher already told me the flow, I can just do it" | The dispatcher is a summary. Invoke `plan-and-spec` to load the actual template + issue formats + gate. |
+| "This feels productive, I'm just helping fast" | Undisciplined action skips the plan, the spec, and the issues. Invoke the skill. |
+| "I'll knock out a quick prototype, then plan" | No. A built file before `plan-and-spec` is a contract failure. Skill first. |
+| "It's a small app, planning is overkill" | If it is app/feature-creation intent, run `plan-and-spec` — it's the entry point, every size. |
+| "I'll just start building, skip the spec/issues" | No — `plan-and-spec` clarifies and gets one "correct" before any build. Run it first. |
 | "This is just a quick Supabase question" | Questions are tasks. Invoke `supabase`. |
 | "I remember how RLS works" | Supabase changes; the skill has the current rules. Invoke it. |
 | "I'll write the schema first, then check" | Check BEFORE writing. The skill shapes the schema. |
-| "Planning is overkill for this app" | If it is app/feature-creation intent, run `plan-and-spec` — it's the entry point. |
-| "I'll just start building, skip the spec/issues" | No — `plan-and-spec` clarifies and gets one "correct" before any build. Run it first. |
 | "plan-and-spec should fire on this bug fix" | No — it's intent-gated. Stay quiet, just fix it. |
 
 ## Persona — think as a developer, respond as a designer/PM (ALL skills)
