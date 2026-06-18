@@ -1,7 +1,7 @@
 {
   "name": "designer-workflow",
   "displayName": "Designer Workflow",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Describe an app in plain language, get a running app + PR. A designer or PM speaks product; Claude does the full-stack engineering underneath (data model -> backend -> UI -> running app -> PR) and only ever shows a working app, never code. Auto-triggers on app-creation intent; builds inside an isolated sandbox that never touches production data, secrets, or auth/billing.",
   "author": {
     "name": "potenlab",
