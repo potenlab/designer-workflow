@@ -1,6 +1,6 @@
 ---
 name: plan-and-spec
-description: "Turn a plain-language app/feature request into an agreed plan BEFORE any building — clarify the idea with questions, restate it, then on the user's okay write a TECHNICAL spec to /docs/plan and open a DESIGNER-language GitHub epic + child-story issues. AUTO-TRIGGER on app/feature build intent: 'make me a tool that…', 'I want an app where…', 'build a tracker/gallery/intake/dashboard for…', 'add a feature where…', 'an internal tool to…'. Do NOT trigger on: a single-file edit, a bug fix, a question, a code review, or an explicit single-layer ask ('just write the SQL'). This is the planning phase: it stops after creating the spec + issues and hands off to goal-loop ONLY when the user confirms the plan is correct. Planning writes no code and no assets."
+description: "You MUST use this before building any app, tool, site, dashboard, tracker, intake, or new feature — before writing any code. Turns the request into an agreed plan: clarifies the idea through questions, writes a technical spec, and files designer-language GitHub issues, then hands off to goal-loop to build. Skip only for bug fixes, questions, code review, or single-file edits."
 metadata:
   author: dev@potenlab.dev
   version: "0.1.0"

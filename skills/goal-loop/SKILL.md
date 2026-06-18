@@ -1,6 +1,6 @@
 ---
 name: goal-loop
-description: "Autonomously build a planned app/feature to completion by working its GitHub child-story issues ONE AT A TIME — for each story: build it (backend/UI/assets/wire via the design skill), verify it running in a browser, and open its own PR that closes the issue — looping until every story in the epic is shipped, then reporting all PRs + walkthroughs. The GOAL is the epic + its acceptance criteria; the LOOP is the child stories. Triggered by plan-and-spec once the user confirms the plan is correct (or invoke directly when an epic of story issues already exists). Execution only — it does NOT do the planning; it assumes the spec (/docs/plan) and the epic/child issues already exist. Runs autonomously after the go-ahead and stops only when the goal is met, the sandbox boundary is hit, or a story can't be verified."
+description: "Use after plan-and-spec to build a planned app to completion — works the GitHub epic's child stories one at a time (build via design, verify in a browser, open one PR per story), looping until every story ships, then reports. Triggered by plan-and-spec once the user confirms the plan; or use directly when a spec (/docs/plan) and an epic of story issues already exist. Execution only — it does not plan."
 metadata:
   author: dev@potenlab.dev
   version: "0.1.0"

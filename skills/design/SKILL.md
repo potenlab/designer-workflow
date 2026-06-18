@@ -1,6 +1,6 @@
 ---
 name: design
-description: "Create a whole working application from a plain-language description — a designer or PM describes the app they want, and you do the full-stack engineer's thinking underneath (data model → backend → UI → running app → PR), but only ever respond in design/product language and a working app, never code. AUTO-TRIGGER on app-creation intent: 'make me a tool that…', 'I want an app where…', 'a little app/site to…', 'build me a tracker/gallery/intake/dashboard for…', 'an internal tool for the team to…', 'something where clients can…'. Do NOT trigger on: editing one existing component, fixing a bug, answering a question, reviewing code, or explicit 'just the frontend/backend' single-layer asks. When it fires, run the design loop: restate the plan in plain language → build full-stack inside an isolated sandbox branch → run it and show a mobile+desktop walkthrough → open a PR. Never touches other apps, production data, secrets, or auth/billing."
+description: "Build ONE app or story full-stack from an already-agreed plan — backend, UI, assets, and wiring inside an isolated sandbox branch, then run it and open a PR. Normally called by goal-loop once per child story; use directly only for a single explicit one-off build. For a fresh 'make me an app / build a tool' request, use plan-and-spec FIRST — not this. Responds only in plain product language and a working app, never raw code."
 metadata:
   author: dev@potenlab.dev
   version: "0.1.0"
