@@ -62,116 +62,117 @@ this boundary. If it's missing, note it once and suggest running `/designer-work
 ## 1. The flow
 
 ```
-① CLARIFY   ask questions until the change is pinned (what, where, scope)
-② PREVIEW   restate the plan + breakdown in plain language
-            → ONE confirmation: "Is this plan correct?"
-   ↓ yes
-③ SPEC      write the TECHNICAL spec → /docs/plan/<slug>.md
-④ ISSUES    ALWAYS file at least one GitHub issue (gh):
-            • small focused change → a SINGLE tracking issue
+① CLARIFY   pin the change — SCALE TO SIZE (small: 0–1 quick Qs; new/large: data, users, flows)
+② SPEC      write the spec → /docs/plan/<slug>.md (short for a small change)
+③ ISSUE     file the GitHub issue(s) with gh:
+            • small focused change → ONE tracking issue
             • new / large work     → an epic + one child issue per story
-⑤ HANDOFF   on the same "yes", trigger goal-loop to build it autonomously
+④ VERIFY    show the user the FILED issue(s) + link → "Is this issue correct? Start building?"
+   ↓ yes  ← THE GATE: nothing builds before the user confirms the filed issue
+⑤ HANDOFF  trigger goal-loop to build (small change → quick/direct build; large → full loop)
 ```
 
-Scale to the work: a one-tab restyle needs one quick clarifying round, a short spec, and one issue —
-not a four-story epic. A whole new app needs the full breakdown. But **never skip ②, ③, or ④** — even
-a small change gets a confirmed plan, a spec entry, and a filed GitHub issue.
+**Two rules that shape everything:**
+
+- **Scale to the work.** A one-tab restyle gets one quick clarifying round (or none), a short spec, and
+  ONE issue — never a four-story epic. A whole new app gets the full breakdown. Don't over-process small
+  changes; just move fast through ②③④ and build.
+- **The gate is ④, AFTER the issue is filed.** You file the issue first, then show it to the user and
+  get an explicit yes before triggering `goal-loop`. Never start building on an unverified issue. Never
+  skip ②, ③, or ④ — even a small change gets a spec entry, a filed issue, and the user's okay.
 
 Never skip ① or ②. The confirmation in ② is the **single human gate** for the whole pipeline.
 
-### ① Clarify (use AskUserQuestion)
+### ① Clarify — scale to the size of the change
 
-You can't write a good spec from a one-line request. Use the **AskUserQuestion** tool to pin down what
-you genuinely can't assume — keep questions in plain language, group them, and don't interrogate:
+Pin down only what you genuinely can't assume, then stop. **Match the effort to the change:**
 
-- **Who uses it** and do different people see different things? (drives auth + RLS later)
-- **What it stores** — the core "things" and their important fields.
-- **The main flow** — the one path that has to work end to end.
-- **Scope for v1** — what's in, what's explicitly out (so the breakdown is bounded).
+- **Small change** (a restyle, a copy tweak, a one-component fix): usually **zero or one** quick
+  question — or none if it's obvious. Don't interrogate the user over a button color or a header tweak.
+- **New / large work** (a new app or a real feature): use **AskUserQuestion** to pin the essentials —
+  who uses it and do different people see different things (drives auth/RLS), what it stores, the one
+  main flow, and what's in/out of scope.
 
-For your **own** situational awareness, you may invoke **kg-context-dispatch** to understand the
-existing tree and the sandbox blast radius. Never surface KG / `touch_budget` / "blast radius"
-language to the user.
+For your **own** situational awareness you may invoke **kg-context-dispatch** to understand the
+existing tree and the blast radius. Never surface KG / `touch_budget` / "blast radius" to the user.
 
-Stop asking once you can write the breakdown. One or two rounds is usually enough.
+Stop asking the moment you can write the spec — for a small change that's immediately.
 
-### ② Preview + confirm (the one gate)
+### ② Write the technical spec → `/docs/plan/<slug>.md`
 
-Restate, in **plain language**, what you heard and how you'd break it into stories:
+Write the spec — the **one place engineer language belongs** in this phase (a file, not chat). `<slug>`
+is a kebab-case name of the change (e.g. `community-tab-restyle`, `brief-intake-tracker`). Create
+`/docs/plan/` if it doesn't exist. Follow **`references/spec-template.md`**, and **scale it to the
+work**:
 
-> "Here's what I've got. A **brief-intake tracker**: clients submit a brief, your team moves it
-> New → Doing → Done, and people only see their own team's. I'd build it as:
-> • **Submit a brief** — a client fills a short form and it's saved.
-> • **See the board** — briefs show up in New / Doing / Done.
-> • **Move a brief** — drag/advance a brief between stages.
-> • **Only-my-team** — sign in, and you only see your team's briefs.
-> It lives in its own sandbox — nothing here touches our live data. **Is this plan correct?**"
+- **Small change** → a short spec: what changes, where, and the acceptance criteria. A few lines is fine.
+- **New / large work** → the full spec: data model, auth & RLS, types, routes, edge cases, the sandbox
+  boundary, and a **story → implementation map** so each child issue points at its spec section.
 
-- Wait for an explicit **yes**. It's cheap to fix the plan here, expensive after issues are filed.
-- This single confirmation authorizes **all** of: writing the spec, filing the issues, AND starting
-  the build loop. Do not file anything or build anything before it.
-- If they change something, re-state and re-confirm. Don't proceed on a "maybe".
+Do **not** show the spec contents in chat. Just say, plainly, "I've written up the technical plan."
 
-### ③ Write the technical spec → `/docs/plan/<slug>.md`
+### ③ File the GitHub issue(s) with `gh`
 
-After the yes, write the spec. This is the **one place engineer language belongs** in this phase — it
-is a file, not chat. Pick `<slug>` as a kebab-case name of the app/feature (e.g.
-`brief-intake-tracker`). Create `/docs/plan/` if it doesn't exist.
+Use the **`gh` CLI**. Check a remote exists (`gh repo view`). If there's **no GitHub remote**, don't
+fail silently — tell the user and write the breakdown into the spec as a checklist instead. **Always
+file at least one issue**, sized to the work (`references/issue-templates.md`):
 
-Follow **`references/spec-template.md`**. It must cover: data model, auth & RLS model, types, the
-route/API shape, edge cases & error states, the sandbox boundary it stays inside, and a
-**story → implementation map** so each GitHub child issue points at its section of the spec.
+- **Small focused change** → **ONE** issue (label `change`): what changes + plain acceptance criteria.
+- **New / large work** → an **epic** (`epic`) + **one child issue per story** (`story`), linked back to
+  the epic by number.
 
-Do **not** show the spec contents in chat. Tell the user it exists in plain language ("I've written
-up the technical plan").
+Issue bodies are **designer/product language** — user stories and plain acceptance criteria. **No SQL,
+no file paths, no schema, no migration talk**; they link to the spec via a small note.
 
-### ④ Create the GitHub issues (designer language)
+### ④ Verify the filed issue with the user — THE GATE
 
-Use the **`gh` CLI**. First check a remote exists (`git remote -v` / `gh repo view`). If there's **no
-GitHub remote**, don't fail silently — tell the user in plain language and write the breakdown into the
-spec file as a checklist instead, so nothing is lost.
+After the issue exists, **show it to the user and get an explicit okay before anything is built.** Paste
+the issue title, a one- or two-line plain-language summary, and the link, then ask:
 
-Create, following **`references/issue-templates.md`**:
+> "I've filed the issue: **<title>** → <link>. In plain terms: <1–2 lines of what it covers>.
+> **Is this correct — should I start building it?**"
 
-- **One epic issue** — the product vision in plain language + a task-list checklist linking each child.
-  Label it `epic`.
-- **One child issue per story** — a single user story with **plain-language acceptance criteria**,
-  linked back to the epic, and a pointer to its spec section. Label each `story`.
-
-These are **designer/product language**: user stories and acceptance criteria a PM can read. **No SQL,
-no file paths, no schema, no migration talk** in the issue bodies. Keep the epic↔child links intact
-(the epic's checklist references each child by number).
+- Wait for an explicit **yes**. This is the **single human gate — nothing builds before it.**
+- If it's **wrong**, fix it: `gh issue edit` the body (or `gh issue close` and refile), then re-confirm.
+  Never build on an issue the user hasn't blessed.
+- If the user says "just file it, don't build yet," **stop here** — the issue stands, no `goal-loop`.
+- For an epic + children, show the **epic** (with its checklist) and confirm the set, not every child
+  separately.
 
 ### ⑤ Hand off to goal-loop
 
-On the **same confirmation** from ②, after the spec + issues exist, **invoke the `goal-loop` skill**
-with the `Skill` tool to build the stories autonomously, one per turn. Announce it in plain language:
+On the user's **yes at ④**, **invoke the `goal-loop` skill** with the `Skill` tool to build. **Scale
+the build to the change:**
 
-> "Plan's locked and broken into pieces. I'll start building it now, story by story, and show you each
-> one running before I open it for review."
+- **Small change** → build it quickly and directly (one short story), verify it in the browser, open
+  one PR. Don't spin up heavy multi-story machinery for a one-tab restyle.
+- **New / large work** → goal-loop walks the child stories one per turn (build → verify → one PR each).
 
-If the user said "just plan it, don't build yet," **respect that** — stop after ④ and don't invoke
-`goal-loop`. The user always wins (see the dispatcher's instruction priority).
+Announce it plainly: "Great — building it now. I'll show you it running before I open it for review."
 
 ## 2. Persona rules (non-negotiable)
 
 - **Never show raw code, SQL, file paths, the spec's contents, or migrations in chat.** Translate to
   product language. The spec file carries the technical detail; the chat stays plain.
 - **Issues are designer language.** A PM reads them; an engineer reads the spec the issue links to.
-- One plain-language confirmation (②) gates the whole pipeline — don't add extra gates, don't bury the
-  user in detail.
+- One plain-language confirmation (④, **after** the issue is filed) gates the build — show the real
+  GitHub issue and get a yes before `goal-loop`. Don't add extra gates; don't bury the user in detail.
 - Respect the **sandbox boundary** from `.designer-workflow/config.md` when writing the spec — if a
   story would need out-of-sandbox / production access, say so in the spec and flag it for a dev rather
   than speccing a boundary breach.
 
 ## 3. Acceptance — this skill is "done" for a request when it
 
-1. **Auto-triggers** on app/feature build intent — and stays quiet on bug fixes, questions, edits.
-2. **Clarifies** with questions before writing anything.
-3. **Restates the plan** in plain language and gets **one explicit yes** before filing/building.
-4. Writes a **technical** spec to `/docs/plan/<slug>.md` (never shown in chat).
-5. Files a **designer-language** GitHub **epic + child-story** issues (or falls back to a checklist in
-   the spec if there's no remote).
-6. **Hands off to `goal-loop`** on the same yes — unless the user asked to plan only.
+1. **Auto-triggers** on ANY code/UI change (build, edit, restyle, fix) — quiet only on pure
+   questions/explanations/read-only review.
+2. **Scales to size** — a small change gets ~0–1 quick questions, a short spec, and ONE issue; new/large
+   work gets the full clarify + spec + epic.
+3. Writes a **technical** spec to `/docs/plan/<slug>.md` (never shown in chat).
+4. **Always files at least one GitHub issue** with `gh` — a single `change` issue for small work, an
+   `epic` + `story` children for large (or a spec checklist if there's no remote).
+5. **Verifies the filed issue with the user (the gate)** — shows the real issue + link and waits for an
+   explicit yes **before** building.
+6. **Hands off to `goal-loop`** only on that yes — and scales the build (quick/direct for a small change,
+   full loop for large). Unless the user asked to file only.
 
 See `references/spec-template.md` and `references/issue-templates.md`.

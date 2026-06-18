@@ -38,22 +38,26 @@ Just say what you want:
 > "a clean little gallery app where I drop images and tag them"
 > "an intake tool: clients submit a brief, and we track it New → Doing → Done"
 
-The workflow recognizes the intent and runs the full pipeline — **plan → confirm → build → ship**:
+It runs on **any change** — building something new, or editing/restyling/fixing something that exists —
+and runs the pipeline **plan → file issue → confirm → build → ship**:
 
-1. **Clarify & plan** (`plan-and-spec`) — it asks a few plain-language questions, restates the plan,
-   and shows how it'd break the work into pieces.
-2. **Confirm — the one gate** — *"Is this plan correct?"* On your **yes** it writes a **technical spec**
-   to `docs/plan/` (for the developer — never shown in chat) and opens a **GitHub epic + one child issue
-   per piece**, written in plain product language.
-3. **Build autonomously** (`goal-loop`) — it works the pieces **one at a time**: builds each on an
-   isolated **sandbox branch**, runs it, captures a **mobile + desktop** walkthrough, and opens **one PR
-   per piece** that closes its issue. It never touches other apps, production data, secrets, or
-   auth/billing.
-4. **Report** — when every piece is built and verified, it hands you all the review links.
+1. **Clarify & plan** (`plan-and-spec`) — asks a few plain-language questions (or **none** for a small
+   change — it scales to size) and writes a **technical spec** to `docs/plan/` (for the developer, never
+   shown in chat).
+2. **File the GitHub issue** — it **always** opens at least one issue with `gh`: a **single tracking
+   issue** for a small change, or an **epic + one child issue per piece** for new/large work, in plain
+   product language.
+3. **Confirm — the gate** — it shows you the **filed issue** and asks *"Is this correct — should I start
+   building?"* **Nothing builds until you say yes.** If it's off, it edits/refiles the issue first.
+4. **Build** (`goal-loop`) — on your yes: a small change is built **directly** (verify → one PR); new/
+   large work is built **one piece at a time**, each on an isolated **sandbox branch**, with a **mobile +
+   desktop** walkthrough and **one PR per piece** that closes its issue. Never touches other apps,
+   production data, secrets, or auth/billing.
+5. **Report** — hands you all the review links.
 
-You only ever make **one decision** ("is the plan correct?"); after that it runs to done. If you'd
-rather stop at the plan, say *"just plan it, don't build yet."* There's no command to remember, but
-`/designer-workflow:dw-plan` will kick the planning off explicitly if you want to be certain.
+You make **one decision** — confirming the filed issue; after that it runs to done. Say *"just file it,
+don't build yet"* to stop at the issue. There's no command to remember, but `/designer-workflow:dw-plan`
+kicks off planning explicitly if you want to be certain.
 
 The split of audiences is deliberate: **chat stays plain language**, the **technical spec** lives in
 `docs/plan/`, and the **GitHub issues** are designer/product language for the team to track.

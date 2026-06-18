@@ -1,6 +1,6 @@
 ---
 name: goal-loop
-description: "Use after plan-and-spec to build a planned app to completion — works the GitHub epic's child stories one at a time (build via design, verify in a browser, open one PR per story), looping until every story ships, then reports. Triggered by plan-and-spec once the user confirms the plan; or use directly when a spec (/docs/plan) and an epic of story issues already exist. Execution only — it does not plan."
+description: "Use after plan-and-spec to build a planned change to completion. Scales to size: a small single-issue change is built directly (one story, verify, one PR); a new/large epic is walked one child story at a time (build via design, verify in a browser, open one PR per story), then reports. Triggered by plan-and-spec ONLY after the user has confirmed the FILED GitHub issue is correct; or use directly when a spec (/docs/plan) and a filed, user-approved issue already exist. Execution only — it does not plan or file issues."
 metadata:
   author: dev@potenlab.dev
   version: "0.1.0"
@@ -38,13 +38,18 @@ a read-only Higgsfield tool — `balance` (preferred) or `list_workspaces`.
   > in: run `/mcp`, pick **higgsfield → Authenticate**, and log in in the browser. Tell me once it shows
   > connected and I'll pick up the build."
 
-### 0b. Inputs exist
+### 0b. Inputs exist AND the issue is user-approved
 
-Confirm there is something to build:
+Confirm there is something to build **and that the user already blessed the filed issue** (that gate
+lives in `plan-and-spec` §④ — don't re-ask, but don't build an issue that was never confirmed):
 
 - The **spec** at `/docs/plan/<slug>.md`.
-- The **epic** and its **open child-story issues** (`gh issue list --label story` / read the epic's
-  checklist). If there are none, you were invoked too early — defer to **`plan-and-spec`** first.
+- Either a **single `change` issue** (small change) OR an **epic + open `story` children**
+  (`gh issue list --label "story,change"` / read the epic's checklist).
+- If there's no spec/issue at all, you were invoked too early — defer to **`plan-and-spec`** first.
+
+**Scale to the work:** if it's a single small-change issue, treat it as **one short story** — build it
+directly, verify, open one PR, done. Only walk a multi-story loop when there's an epic with children.
 
 ### 0c. Read the project config
 
