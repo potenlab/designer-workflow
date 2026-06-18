@@ -86,6 +86,23 @@ grep -qi 'claude-in-chrome\|Claude Chrome extension' "$PLUGIN_DIR/skills/verify-
   && echo "  ok: verify-in-browser uses the Claude Chrome extension" \
   || { echo "  MISSING: Claude Chrome extension in verify-in-browser"; exit 1; }
 
+echo "== 7b. UserPromptSubmit hook re-injects the plan-and-spec directive every turn =="
+python3 -c "
+import json
+h=json.load(open('$HOOKS'))['hooks']
+assert 'UserPromptSubmit' in h, 'UserPromptSubmit hook not registered'
+assert 'user-prompt-submit' in h['UserPromptSubmit'][0]['hooks'][0]['command']
+print('  ok: hooks.json registers UserPromptSubmit -> user-prompt-submit')
+"
+[ -x "$PLUGIN_DIR/hooks/user-prompt-submit" ] || { echo "  MISSING/not executable: hooks/user-prompt-submit"; exit 1; }
+UPS_JSON="$(CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" bash "$PLUGIN_DIR/hooks/run-hook.cmd" user-prompt-submit)"
+echo "$UPS_JSON" | python3 -c "
+import json,sys
+ac=json.load(sys.stdin)['hookSpecificOutput']['additionalContext']
+assert 'plan-and-spec' in ac and 'gh' in ac, 'directive missing plan-and-spec / gh'
+print('  ok: per-prompt directive points at plan-and-spec + gh issue creation ('+str(len(ac))+' chars)')
+"
+
 echo "== 8. Planning pipeline: plan-and-spec → goal-loop wiring =="
 PS="$PLUGIN_DIR/skills/plan-and-spec/SKILL.md"
 GL="$PLUGIN_DIR/skills/goal-loop/SKILL.md"

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# UserPromptSubmit hook for the designer-workflow plugin.
+# Fires on EVERY user prompt (not just session start) and re-injects a compact
+# directive so the plan-and-spec entry point reliably triggers on app/feature
+# build intent, even deep into a long conversation where the SessionStart
+# dispatcher has faded out of attention. Keep this SHORT — it runs every turn.
+
+set -euo pipefail
+
+# Compact, intent-gated directive. The full pipeline lives in the skills; this is
+# just the per-turn reminder that the entry point is mandatory on build intent.
+directive="<designer-workflow-standard>\nThis project standardizes app/feature work through the designer-workflow plugin. If THIS user message asks to build, create, make, add, or scaffold an app, tool, site, page, dashboard, tracker, intake, or feature, your VERY FIRST action MUST be to invoke the \`plan-and-spec\` skill with the Skill tool — before any Write, Edit, Bash, AskUserQuestion, or browser tool, and before answering. \`plan-and-spec\` clarifies the idea, writes the technical spec to /docs/plan, and files the GitHub epic + child-story issues with \`gh\`; it then hands off to \`goal-loop\` to build. Do NOT build inline, do NOT skip creating the GitHub issues. For a bug fix, a question, a code review, or a single-file edit, ignore this and proceed normally.\n</designer-workflow-standard>"
+
+# Emit context injection as JSON. UserPromptSubmit supports additionalContext.
+#   Claude  -> hookSpecificOutput.additionalContext (nested)
+#   Cursor  -> additional_context (top-level, snake_case)
+#   Copilot / SDK standard -> additionalContext (top-level)
+# printf (not heredoc) avoids the bash 5.3+ heredoc hang.
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$directive"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "UserPromptSubmit",\n    "additionalContext": "%s"\n  }\n}\n' "$directive"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$directive"
+fi
+
+exit 0
