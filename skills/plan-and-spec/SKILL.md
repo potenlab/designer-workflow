@@ -1,6 +1,6 @@
 ---
 name: plan-and-spec
-description: "You MUST use this before building any app, tool, site, dashboard, tracker, intake, or new feature — before writing any code. Turns the request into an agreed plan: clarifies the idea through questions, writes a technical spec, and files designer-language GitHub issues, then hands off to goal-loop to build. Skip only for bug fixes, questions, code review, or single-file edits."
+description: "You MUST use this before ANY change to the project's code or UI — building something new, OR editing, restyling, tweaking, fixing, or refactoring anything that already exists — before you touch any file. Clarifies the change through questions, writes a technical spec to /docs/plan, and ALWAYS files a GitHub issue with gh, then hands off to goal-loop to build. Skip ONLY for pure questions, explanations, or read-only code review with no change."
 metadata:
   author: dev@potenlab.dev
   version: "0.1.0"
@@ -29,20 +29,24 @@ the plan is correct.
 
 ## 0. Gate before you act
 
-### 0a. Does this even apply? (intent gate)
+### 0a. Does this even apply? (scope gate — broad by design)
 
-Run this skill **only** when the user is asking to **create an app or a feature** (a new runnable
-thing, or a new capability in one). Signals: "make me a tool/app/site that…", "I want something
-where…", "build a tracker/gallery/intake/dashboard for…", "add a feature where…".
+Run this skill before **ANY change to the project's code or UI** — whether you are building something
+new OR editing, restyling, tweaking, fixing, refactoring, or extending something that already exists.
+**If the work will touch a file, plan it here FIRST.** Signals (all of these go through planning):
+"make me a tool…", "add a feature…", "restyle this tab", "change the header", "move this button",
+"fix this bug", "tidy up this screen", "refactor X".
 
-**Do not run** (handle normally, no planning skin) when the request is:
+**Skip it ONLY when the request makes no change to code/UI at all:**
 
-- Editing or restyling **one existing** component/page ("make this button calmer").
-- A bug fix, a question, a code review, a refactor of existing code.
-- An explicit single-layer ask ("just write the SQL", "only the React component").
+- A pure question, an explanation, or a code review with no edit.
+- Read-only investigation ("why is this empty?", "where is X defined?", "explain this file").
 
-When unsure, **ask one plain-language question**: *"Do you want me to plan this out as its own thing —
-write it up and break it into pieces — or just make a quick change to what we already have?"*
+Everything that modifies the project goes through planning first — **even a one-line restyle.** The
+plan scales to the work: a small focused change gets a short spec and a **single** GitHub issue; new
+or large work gets a spec plus an **epic + child stories**. Either way you **ALWAYS file at least one
+GitHub issue** (§④). When you catch yourself about to "just make the change directly" — stop, that is
+exactly the case this gate exists for.
 
 ### 0b. Higgsfield is NOT gated here
 
@@ -58,14 +62,20 @@ this boundary. If it's missing, note it once and suggest running `/designer-work
 ## 1. The flow
 
 ```
-① CLARIFY   ask questions until the idea is pinned (data, users, flows, scope)
-② PREVIEW   restate the plan + epic/story breakdown in plain language
+① CLARIFY   ask questions until the change is pinned (what, where, scope)
+② PREVIEW   restate the plan + breakdown in plain language
             → ONE confirmation: "Is this plan correct?"
    ↓ yes
 ③ SPEC      write the TECHNICAL spec → /docs/plan/<slug>.md
-④ ISSUES    create the GitHub epic + one child issue per story (designer language)
+④ ISSUES    ALWAYS file at least one GitHub issue (gh):
+            • small focused change → a SINGLE tracking issue
+            • new / large work     → an epic + one child issue per story
 ⑤ HANDOFF   on the same "yes", trigger goal-loop to build it autonomously
 ```
+
+Scale to the work: a one-tab restyle needs one quick clarifying round, a short spec, and one issue —
+not a four-story epic. A whole new app needs the full breakdown. But **never skip ②, ③, or ④** — even
+a small change gets a confirmed plan, a spec entry, and a filed GitHub issue.
 
 Never skip ① or ②. The confirmation in ② is the **single human gate** for the whole pipeline.
 

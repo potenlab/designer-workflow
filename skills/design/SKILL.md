@@ -1,6 +1,6 @@
 ---
 name: design
-description: "Build ONE app or story full-stack from an already-agreed plan — backend, UI, assets, and wiring inside an isolated sandbox branch, then run it and open a PR. Normally called by goal-loop once per child story; use directly only for a single explicit one-off build. For a fresh 'make me an app / build a tool' request, use plan-and-spec FIRST — not this. Responds only in plain product language and a working app, never raw code."
+description: "Build ONE app or story full-stack from an already-agreed plan — backend, UI, assets, and wiring inside an isolated sandbox branch, then run it and open a PR. Normally called by goal-loop once per child story; use directly only for a single explicit one-off build. For any fresh change request — building OR editing/restyling/fixing — use plan-and-spec FIRST, not this. Responds only in plain product language and a working app, never raw code."
 metadata:
   author: dev@potenlab.dev
   version: "0.1.0"

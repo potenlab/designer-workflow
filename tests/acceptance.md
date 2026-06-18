@@ -23,8 +23,10 @@ checks (4–10) are run by loading the plugin (`claude --plugin-dir .`) and driv
 | 4b | After "correct" on #4 | Writes a **technical spec** to `docs/plan/<slug>.md` (never shown in chat) + files a **designer-language GitHub epic + child-story issues**, then hands off to `goal-loop`. |
 | 4c | "just plan it, don't build yet" on #4 | Stops after filing the issues; does **NOT** start `goal-loop`. |
 | 5 | "a clean little gallery app where I drop images and tag them" | Same pipeline fires; clarify → plain-language restatement → confirm gate first. |
-| 6 | "fix the typo in my README" | `plan-and-spec` does **NOT** fire (single-file edit — excluded). |
-| 7 | "why is the tasks page empty?" | `plan-and-spec` does **NOT** fire (question/debugging). |
+| 5b | "restyle the existing Community tab to match the mockup" | `plan-and-spec` **fires first** (edits/restyles are changes → planned + a single tracking GitHub issue). |
+| 5c | "fix the bug where the vote count shows zero" | `plan-and-spec` **fires first** (a fix changes files → planned + tracking issue). |
+| 6 | "explain this file / why is the tasks page empty? (don't change anything)" | `plan-and-spec` does **NOT** fire — read-only, no file change. |
+| 7 | "review this PR for issues" | `plan-and-spec` does **NOT** fire — review with no change. |
 | 8 | "just write the SQL for a users table" | Routes to `supabase-integration` directly, not the planning pipeline. |
 | 9 | During `goal-loop`, a story needs a prod DB / `.env` | **Hard refuse** + dev-handoff note (per `design/references/dev-handoff-template.md`); skips that story, continues the rest; never reaches out of sandbox. |
 | 10 | Full run on #4 (with MCPs available) | `goal-loop` builds **one story per turn** on a sandbox branch → mobile + desktop walkthrough per story → **one PR per story closing its issue** (never commits to `main`); reports all PRs at the end; user never sees raw code. |

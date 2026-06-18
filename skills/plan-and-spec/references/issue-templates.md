@@ -11,9 +11,31 @@ don't file anything — write this same breakdown as a checklist into the spec f
 ## Labels (create if missing)
 
 ```bash
-gh label create epic  --color 5319E7 --description "Designer-workflow epic" 2>/dev/null || true
-gh label create story --color 0E8A16 --description "Designer-workflow child story" 2>/dev/null || true
+gh label create epic   --color 5319E7 --description "Designer-workflow epic" 2>/dev/null || true
+gh label create story  --color 0E8A16 --description "Designer-workflow child story" 2>/dev/null || true
+gh label create change --color FBCA04 --description "Designer-workflow focused change" 2>/dev/null || true
 ```
+
+## 0. Small focused change → a SINGLE issue (no epic)
+
+For a restyle, a tweak, or a small fix, **don't** create a four-story epic — file ONE issue. You still
+always file at least one issue; it's just sized to the work.
+
+```bash
+gh issue create --label change --title "<Plain change name, e.g. Restyle the Community tab>" --body-file <(cat <<'EOF'
+## What's changing
+<2–3 plain sentences: what the user will see different and where.>
+
+## Acceptance criteria
+- [ ] <plain, verifiable outcome — what looks/behaves different>
+- [ ] Works on phone and desktop, nothing else visibly broken.
+
+<sub>Build notes for the developer: `/docs/plan/<slug>.md`.</sub>
+EOF
+)
+```
+
+Use the epic + child stories below instead **only** for new or multi-part work.
 
 ## 1. The epic (the product vision)
 

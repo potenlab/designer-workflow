@@ -46,20 +46,22 @@ BEFORE responding — including before asking clarifying questions.
 If a skill applies, using it is not optional. You cannot rationalize your way out of it. This is not
 negotiable. This is not optional. You DO NOT have a choice — you MUST use it.
 
-**HARD RULE — app/feature build intent ⇒ the `Skill` tool with `plan-and-spec` is your FIRST tool
-call.** If the user is asking to build an app, tool, site, dashboard, tracker, intake, or a new
-feature, your VERY FIRST tool call MUST be `Skill(skill: "plan-and-spec")` — nothing before it. In
-particular you may NOT call `AskUserQuestion`, `ToolSearch`, `Write`, `Edit`, `Bash`, `TodoWrite`, or
-a browser tool first, and you may NOT start clarifying, designing, or coding inline. **The dispatcher
-text you are reading now is only a summary — it does NOT replace invoking the skill.** `plan-and-spec`
-carries the real clarify questions, the spec template, the GitHub issue templates, the confirmation
-gate, and the hand-off to `goal-loop`; you cannot reproduce those from memory. Asking your own
-clarifying questions instead of invoking the skill ("I'll just ask first") is the most common failure —
-do not do it. Invoke `plan-and-spec`; IT runs the clarify step for you.
+**HARD RULE — ANY code/UI change ⇒ the `Skill` tool with `plan-and-spec` is your FIRST tool call.**
+If the user is asking to change the project in any way — building something new, OR editing,
+restyling, tweaking, moving, fixing, or refactoring something that already exists (yes, even a
+one-tab restyle or a small fix) — your VERY FIRST tool call MUST be `Skill(skill: "plan-and-spec")` —
+nothing before it. In particular you may NOT call `AskUserQuestion`, `ToolSearch`, `Read`, `Write`,
+`Edit`, `Bash`, `TodoWrite`, or a browser tool first, and you may NOT "proceed directly", start
+clarifying, designing, or coding inline. **The dispatcher text you are reading now is only a summary —
+it does NOT replace invoking the skill.** `plan-and-spec` carries the real clarify questions, the spec
+template, the GitHub issue templates, the confirmation gate, and the hand-off to `goal-loop`; you
+cannot reproduce those from memory. "It's just a quick restyle, I'll proceed directly" is the #1
+failure mode — do not do it. Invoke `plan-and-spec`; IT runs the clarify step for you. The ONLY things
+that skip this are a pure question, an explanation, or a read-only review that changes no files.
 
-The app-building skills are deliberately intent-gated: `plan-and-spec` (the entry point for any
-app/feature request) fires ONLY on app-creation intent and must stay quiet on bug-fixes, questions,
-and single-file edits (see the catalog below). `goal-loop` and `design` run downstream of it
+`plan-and-spec` (the entry point) fires on **ANY change to code/UI** — new work AND edits, restyles,
+tweaks, fixes, refactors. It stays quiet ONLY on pure questions, explanations, and read-only reviews
+that change no files (see the catalog below). `goal-loop` and `design` run downstream of it
 (`plan-and-spec` → on the user's "correct" → `goal-loop` → `design` per story), so you normally don't
 invoke them directly. For the Supabase / Postgres skills there is no such gate — reach for them.
 </EXTREMELY-IMPORTANT>
@@ -87,8 +89,8 @@ to check — if it turns out wrong for the situation, you simply don't follow it
 ```dot
 digraph dw_flow {
     "User message received" [shape=doublecircle];
-    "About to build / Write / Edit / Bash / plan-mode?" [shape=doublecircle];
-    "App / feature build intent?" [shape=diamond];
+    "About to Write / Edit / Bash / change a file / plan-mode?" [shape=doublecircle];
+    "ANY code/UI change? (build OR edit/restyle/fix)" [shape=diamond];
     "Invoke plan-and-spec skill FIRST (before any tool)" [shape=box];
     "Supabase / Postgres work?" [shape=diamond];
     "Invoke the matching Supabase skill" [shape=box];
@@ -96,11 +98,11 @@ digraph dw_flow {
     "Follow the skill exactly" [shape=box];
     "Respond (incl. clarifying questions)" [shape=doublecircle];
 
-    "User message received" -> "App / feature build intent?";
-    // Second entry: catch yourself the instant you're tempted to start building.
-    "About to build / Write / Edit / Bash / plan-mode?" -> "App / feature build intent?";
-    "App / feature build intent?" -> "Invoke plan-and-spec skill FIRST (before any tool)" [label="yes (build an app/tool/site/feature)"];
-    "App / feature build intent?" -> "Supabase / Postgres work?" [label="no"];
+    "User message received" -> "ANY code/UI change? (build OR edit/restyle/fix)";
+    // Second entry: catch yourself the instant you're tempted to start changing a file.
+    "About to Write / Edit / Bash / change a file / plan-mode?" -> "ANY code/UI change? (build OR edit/restyle/fix)";
+    "ANY code/UI change? (build OR edit/restyle/fix)" -> "Invoke plan-and-spec skill FIRST (before any tool)" [label="yes — incl. restyle/edit/fix"];
+    "ANY code/UI change? (build OR edit/restyle/fix)" -> "Supabase / Postgres work?" [label="no change (question / review)"];
     "Invoke plan-and-spec skill FIRST (before any tool)" -> "Announce: 'Using [skill] to [purpose]'";
     "Supabase / Postgres work?" -> "Invoke the matching Supabase skill" [label="yes, even 1%"];
     "Supabase / Postgres work?" -> "Respond (incl. clarifying questions)" [label="definitely not"];
@@ -120,7 +122,7 @@ When you invoke a skill, **announce it**: "Using `supabase` to wire auth correct
 
 | Skill | Invoke when | Do NOT invoke when |
 |---|---|---|
-| **plan-and-spec** | **The entry point for any app/feature request.** The user describes an app, tool, site, dashboard, tracker, intake, or new feature to **build** in plain language ("make me a tool that…", "add a feature where…"). Runs: clarify with questions → restate plan → on "correct" write a technical spec to `/docs/plan` + a designer-language GitHub epic + child stories → hand off to `goal-loop`. | A single-file edit, a bug fix, or a question. It must stay quiet here. |
+| **plan-and-spec** | **The entry point for ANY change to code/UI** — building new, OR editing, restyling, tweaking, moving, fixing, or refactoring something that exists ("make me a tool…", "add a feature…", "restyle this tab", "change the header", "fix this bug"). Runs: clarify → restate plan → on "correct" write a spec to `/docs/plan` + ALWAYS file ≥1 GitHub issue (single issue for small change; epic + child stories for new/large work) → hand off to `goal-loop`. | A pure question, an explanation, or a read-only code review that changes no files. |
 | **goal-loop** | Downstream of `plan-and-spec` — autonomously builds the planned epic, **one child story per turn** (build → verify → PR), until the goal is met. Normally auto-triggered by `plan-and-spec` on "correct"; invoke directly only when an epic of story issues already exists. | No plan/spec/epic exists yet (run `plan-and-spec` first). |
 | **design** | Build **one** story/app full-stack (backend + UI + assets + wire) on a sandbox branch, run it, show a mobile+desktop walkthrough, open a PR. Usually called **by `goal-loop`** per story; can run standalone for a single ad-hoc build. | A single-file edit, a bug fix, or a question. |
 | **supabase-integration** | A created app needs a backend: store data, save submissions, user accounts, login, "a database for this". The opinionated app-creation backend path. | Pure Postgres tuning with no app context (use the two skills below). |
@@ -150,12 +152,13 @@ When more than one could apply: **process/orchestration first, implementation se
 | "The dispatcher already told me the flow, I can just do it" | The dispatcher is a summary. Invoke `plan-and-spec` to load the actual template + issue formats + gate. |
 | "This feels productive, I'm just helping fast" | Undisciplined action skips the plan, the spec, and the issues. Invoke the skill. |
 | "I'll knock out a quick prototype, then plan" | No. A built file before `plan-and-spec` is a contract failure. Skill first. |
-| "It's a small app, planning is overkill" | If it is app/feature-creation intent, run `plan-and-spec` — it's the entry point, every size. |
-| "I'll just start building, skip the spec/issues" | No — `plan-and-spec` clarifies and gets one "correct" before any build. Run it first. |
+| "It's a small app/change, planning is overkill" | Any change runs `plan-and-spec` — the plan just scales smaller (one issue, short spec). |
+| "This is just a quick restyle / one-tab tweak, I'll proceed directly" | NO — restyles and edits ARE changes. `plan-and-spec` FIRST, then build. This is the #1 miss. |
+| "It's only a bug fix, I'll just fix it" | A fix changes files → `plan-and-spec` first (it files the tracking issue too). |
+| "I'll just start building, skip the spec/issues" | No — `plan-and-spec` clarifies and gets one "correct" before any change. Run it first. |
 | "This is just a quick Supabase question" | Questions are tasks. Invoke `supabase`. |
 | "I remember how RLS works" | Supabase changes; the skill has the current rules. Invoke it. |
 | "I'll write the schema first, then check" | Check BEFORE writing. The skill shapes the schema. |
-| "plan-and-spec should fire on this bug fix" | No — it's intent-gated. Stay quiet, just fix it. |
 
 ## Persona — think as a developer, respond as a designer/PM (ALL skills)
 
